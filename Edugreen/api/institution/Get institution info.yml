@@ -1,0 +1,23 @@
+info:
+  name: Get institution info
+  type: http
+  seq: 2
+
+http:
+  method: GET
+  url: "{{API_URL}}/institution/{{INSTITUTION_ID}}"
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test(`Response with expected status`, () => {
+          expect(res.getStatus()).to.be.equal(200);
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

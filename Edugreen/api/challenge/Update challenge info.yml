@@ -1,0 +1,35 @@
+info:
+  name: Update challenge info
+  type: http
+  seq: 4
+
+http:
+  method: PATCH
+  url: "{{API_DOMAIN}}:{{API_PORT}}/api/challenge/{{CHALLENGE_ID}}"
+  body:
+    type: json
+    data: |-
+      {
+        "description":"do not push the cart"
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test(`Response with expected status`, () => {
+          expect(res.getStatus()).to.be.equal(200);
+        });
+
+        test(`Successfully updated info`, () => {
+          expect(res.getBody().error).to.be.equal("");
+          expect(res.getBody().data).have.property("message");
+          expect(res.getBody().data.message).to.be.equal("Challenge updated successfully");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

@@ -1,0 +1,36 @@
+info:
+  name: Delete user relation
+  type: http
+  seq: 2
+
+http:
+  method: DELETE
+  url: "{{API_DOMAIN}}:{{API_PORT}}/api/user-class"
+  body:
+    type: json
+    data: |-
+      {
+        "user_id": "{{USER_ID}}",
+        "class_id": "{{CLASS_ID}}"
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test(`Response with expected status`, () => {
+          expect(res.getStatus()).to.be.equal(200);
+        });
+
+        test(`Successfully enrolled user`, () => {
+          expect(res.getBody().error).to.be.equal("");
+          expect(res.getBody().data).have.property("message");
+          expect(res.getBody().data.message).to.be.equal("User removed from class successfully");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

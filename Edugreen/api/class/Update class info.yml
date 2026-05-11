@@ -1,0 +1,34 @@
+info:
+  name: Update class info
+  type: http
+  seq: 4
+
+http:
+  method: PATCH
+  url: "{{API_DOMAIN}}:{{API_PORT}}/api/class/{{CLASS_ID}}"
+  body:
+    type: json
+    data: |-
+      {
+        "description": "updated description"
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test(`Response with expected status`, () => {
+          expect(res.getStatus()).to.be.equal(200);
+        });
+
+        test(`Successfully updated info`, () => {
+          expect(res.getBody().data).have.property("message");
+          expect(res.getBody().data.message).to.be.equal("Class updated successfully");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

@@ -1,0 +1,36 @@
+info:
+  name: Enroll an user to a challenge
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: "{{API_DOMAIN}}:{{API_PORT}}/api/enrollment"
+  body:
+    type: json
+    data: |-
+      {
+        "challenge_id": "{{CHALLENGE_ID}}",
+        "user_id": "{{USER_ID}}"
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test(`Response with expected status`, () => {
+          expect(res.getStatus()).to.be.equal(200);
+        });
+
+        test(`Successfully enrolled user`, () => {
+          expect(res.getBody().error).to.be.equal("");
+          expect(res.getBody().data).have.property("message");
+          expect(res.getBody().data.message).to.be.equal("Enrolled successfully");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

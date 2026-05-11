@@ -1,0 +1,28 @@
+info:
+  name: user
+  type: folder
+  seq: 5
+
+request:
+  headers:
+    - name: x-session-token
+      value: "{{USER_SESSION_TOKEN}}"
+  auth: inherit
+  scripts:
+    - type: before-request
+      code: |-
+        const initTime = parseInt(bru.getEnvVar("USER_SESSION_INIT_TIME") || "0");
+        const sessionToken = bru.getEnvVar("USER_SESSION_TOKEN");
+        const refreshToken = bru.getEnvVar("USER_REFRESH_TOKEN");
+
+        const maxSessionTime = parseInt(bru.getEnvVar("USER_SESSION_MAX_TIME_MS") || "300000");
+        const sessionExpired = !initTime || (Date.now() - initTime) > maxSessionTime;
+
+        const maxRefreshTime = parseInt(bru.getEnvVar("USER_REFRESH_MAX_TIME_MS") || "604800000");
+        const refreshExpired = !initTime || (Date.now() - initTime) > maxRefreshTime;
+
+        if (!sessionToken || refreshExpired) {
+          await bru.runRequest("api/auth/Login a user");
+        } else if (sessionExpired) {
+          await bru.runRequest("api/auth/Refresh token");
+        }

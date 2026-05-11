@@ -1,0 +1,27 @@
+info:
+  name: Check if user email exists
+  type: http
+  seq: 1
+
+http:
+  method: GET
+  url: "{{API_DOMAIN}}:{{API_PORT}}/api/user?email={{USER_EMAIL}}"
+  params:
+    - name: email
+      value: "{{USER_EMAIL}}"
+      type: query
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test(`Response with expected status`, () => {
+          expect(res.getStatus()).to.be.equal(200);
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

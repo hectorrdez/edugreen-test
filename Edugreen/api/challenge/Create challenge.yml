@@ -1,0 +1,37 @@
+info:
+  name: Create challenge
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: "{{API_DOMAIN}}:{{API_PORT}}/api/challenge"
+  body:
+    type: json
+    data: |-
+      {
+        "name":"test_challenge",
+        "class_id":"{{CLASS_ID}}",
+        "description": "push the cart"
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test(`Response with expected status`, () => {
+          expect(res.getStatus()).to.be.equal(200);
+        });
+
+        test(`Successfully created info`, () => {
+          expect(res.getBody().error).to.be.equal("");
+          expect(res.getBody().data).have.property("id");
+          bru.setEnvVar("CHALLENGE_ID", res.getBody().data.id);
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

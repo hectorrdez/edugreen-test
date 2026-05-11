@@ -1,0 +1,29 @@
+info:
+  name: Delete challenge
+  type: http
+  seq: 5
+
+http:
+  method: DELETE
+  url: "{{API_DOMAIN}}:{{API_PORT}}/api/challenge/{{CHALLENGE_ID}}"
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test(`Response with expected status`, () => {
+          expect(res.getStatus()).to.be.equal(200);
+        });
+
+        test(`Successfully deleted info`, () => {
+          expect(res.getBody().error).to.be.equal("");
+          expect(res.getBody().data).have.property("message");
+          expect(res.getBody().data.message).to.be.equal("Challenge deleted successfully");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

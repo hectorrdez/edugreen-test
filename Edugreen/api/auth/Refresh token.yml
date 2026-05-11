@@ -1,0 +1,35 @@
+info:
+  name: Refresh token
+  type: http
+  seq: 5
+
+http:
+  method: POST
+  url: "{{API_DOMAIN}}:{{API_PORT}}/api/auth/refresh"
+  body:
+    type: json
+    data: |-
+      {
+        "refreshToken": "{{USER_REFRESH_TOKEN}}"
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test(`Response with expected status`, () => {
+          expect(res.getStatus()).to.be.equal(200);
+        });
+
+        test(`Response with accessToken and refreshToken`, () => {
+          expect(res.getBody().data).has.property("sessionToken");
+          bru.setEnvVar("USER_SESSION_TOKEN", res.getBody().data.sessionToken);
+          bru.setEnvVar("USER_SESSION_INIT_TIME", String(Date.now()));
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

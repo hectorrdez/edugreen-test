@@ -1,0 +1,23 @@
+{
+  "name": "edugreen-test",
+  "version": "1.0.0",
+  "description": "",
+  "homepage": "https://github.com/hectorrdez/edugreen-test#readme",
+  "bugs": {
+    "url": "https://github.com/hectorrdez/edugreen-test/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hectorrdez/edugreen-test.git"
+  },
+  "license": "ISC",
+  "author": "hectorrdez",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "@usebruno/cli": "^3.3.0"
+  }
+}

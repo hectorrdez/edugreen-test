@@ -1,0 +1,2853 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Edugreen API Gateway — Docs</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #1a1a2e;
+      --sidebar-bg: #16213e;
+      --card-bg: #0f3460;
+      --card-border: #1a4a7a;
+      --text: #e0e0e0;
+      --text-muted: #9aa5b4;
+      --accent: #61affe;
+      --font: 'Segoe UI', system-ui, sans-serif;
+      --mono: 'Cascadia Code', 'Fira Code', monospace;
+    }
+    body { font-family: var(--font); background: var(--bg); color: var(--text); display: flex; min-height: 100vh; }
+
+    /* Sidebar */
+    aside {
+      width: 220px; min-width: 220px; background: var(--sidebar-bg);
+      padding: 24px 0; position: sticky; top: 0; height: 100vh; overflow-y: auto;
+      border-right: 1px solid var(--card-border);
+    }
+    aside .logo { padding: 0 20px 20px; border-bottom: 1px solid var(--card-border); margin-bottom: 16px; }
+    aside .logo h1 { font-size: 15px; color: var(--accent); }
+    aside .logo p { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+    aside ul { list-style: none; padding: 0 12px; }
+    aside ul li a {
+      display: block; padding: 8px 12px; border-radius: 6px;
+      color: var(--text-muted); text-decoration: none; font-size: 13px;
+      font-family: var(--mono); transition: background .15s, color .15s;
+    }
+    aside ul li a:hover { background: var(--card-border); color: var(--text); }
+
+    /* Main */
+    main { flex: 1; padding: 32px 40px; max-width: 1000px; }
+    .page-header { margin-bottom: 32px; }
+    .page-header h1 { font-size: 28px; color: var(--accent); }
+    .page-header p { color: var(--text-muted); margin-top: 6px; }
+
+    /* Global middleware */
+    .mw-card {
+      background: var(--sidebar-bg); border: 1px solid var(--card-border);
+      border-radius: 10px; padding: 20px; margin-bottom: 32px;
+    }
+    .mw-card h3 { font-size: 14px; color: var(--text-muted); text-transform: uppercase;
+      letter-spacing: .08em; margin-bottom: 12px; }
+    .mw-card .mw-name { font-size: 16px; font-weight: 600; color: var(--accent); margin-bottom: 8px; }
+    .mw-card .mw-desc { font-size: 13px; color: var(--text-muted); margin-bottom: 16px; }
+
+    /* Group */
+    .group-section { margin-bottom: 40px; }
+    .group-title { font-size: 18px; color: var(--text-muted); margin-bottom: 12px;
+      padding-bottom: 8px; border-bottom: 1px solid var(--card-border); font-family: var(--mono); }
+
+    /* Endpoint card */
+    .endpoint-card { border: 1px solid var(--card-border); border-radius: 8px; margin-bottom: 8px; overflow: hidden; }
+    .endpoint-header {
+      display: flex; align-items: center; gap: 12px; padding: 14px 18px;
+      cursor: pointer; background: var(--card-bg); transition: background .15s; flex-wrap: wrap;
+    }
+    .endpoint-header:hover { background: #154070; }
+    .method-badge {
+      font-family: var(--mono); font-size: 12px; font-weight: 700;
+      padding: 4px 10px; border-radius: 4px; min-width: 62px; text-align: center;
+      letter-spacing: .05em; flex-shrink: 0;
+    }
+    .endpoint-path { font-family: var(--mono); font-size: 14px; font-weight: 600; flex-shrink: 0; }
+    .endpoint-desc-inline { font-size: 12px; color: var(--text-muted); flex: 1; min-width: 0;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .endpoint-badges { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+    .role-badge { font-size: 10px; background: #2d3748; border: 1px solid #4a5568;
+      color: #a0aec0; padding: 2px 7px; border-radius: 10px; }
+    .impl-badge { font-size: 10px; padding: 2px 7px; border-radius: 10px; }
+    .impl-yes { background: #1a3a2a; border: 1px solid #49cc90; color: #49cc90; }
+    .impl-no  { background: #3a2a1a; border: 1px solid #fca130; color: #fca130; }
+    .chevron { font-size: 12px; color: var(--text-muted); transition: transform .2s; }
+    .chevron.open { transform: rotate(180deg); }
+
+    /* Endpoint body */
+    .endpoint-body { background: #0a2540; padding: 20px 18px; border-top: 1px solid var(--card-border); }
+    .full-desc { font-size: 13px; color: var(--text-muted); margin-bottom: 16px; }
+    .section-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    @media (max-width: 700px) { .section-tabs { grid-template-columns: 1fr; } }
+    .tab-section {}
+    .tab-title { font-size: 12px; text-transform: uppercase; letter-spacing: .08em;
+      color: var(--text-muted); margin-bottom: 10px; font-weight: 600; }
+
+    /* Params */
+    .param-section { margin-bottom: 14px; }
+    .param-label { font-size: 11px; color: var(--accent); margin-bottom: 6px; font-weight: 600; }
+    .param-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .param-table th { background: #0f2a40; color: var(--text-muted); padding: 6px 8px;
+      text-align: left; font-weight: 600; }
+    .param-table td { padding: 6px 8px; border-top: 1px solid var(--card-border); vertical-align: top; }
+    .param-name { font-family: var(--mono); color: #81d4fa; white-space: nowrap; }
+    .param-desc { color: var(--text-muted); }
+    .schema-table { margin-top: 8px; }
+    .no-params { font-size: 12px; color: var(--text-muted); }
+
+    /* Responses */
+    .response-item { display: flex; align-items: flex-start; gap: 10px; flex-wrap: wrap;
+      padding: 8px 0; border-bottom: 1px solid var(--card-border); }
+    .response-item:last-child { border-bottom: none; }
+    .status-badge { font-family: var(--mono); font-size: 12px; font-weight: 700;
+      padding: 3px 8px; border-radius: 4px; color: #fff; flex-shrink: 0; }
+    .response-desc { font-size: 12px; color: var(--text-muted); flex: 1; padding-top: 3px; }
+  </style>
+</head>
+<body>
+  <aside>
+    <div class="logo">
+      <h1>Edugreen API Gateway</h1>
+      <p>v1.0.0</p>
+    </div>
+    <ul>
+      <li><a href="#global-mw">Middleware global</a></li>
+      <li><a href="#group-health">health</a></li><li><a href="#group-auth">auth</a></li><li><a href="#group-user">user</a></li><li><a href="#group-class">class</a></li><li><a href="#group-institution">institution</a></li><li><a href="#group-user-class">user-class</a></li><li><a href="#group-enrollment">enrollment</a></li><li><a href="#group-challenge">challenge</a></li><li><a href="#group-stats">stats</a></li>
+    </ul>
+  </aside>
+
+  <main>
+    <div class="page-header">
+      <h1>Edugreen API Gateway</h1>
+      <p>Versión 1.0.0 · 36 endpoints</p>
+    </div>
+
+    <div class="mw-card" id="global-mw">
+      <h3>Middleware global</h3>
+      <div class="mw-name">ApiKeyMiddleware</div>
+      <div class="mw-desc">Aplicado a todos los endpoints. Valida que el header Authorization coincida con la variable de entorno API_KEY.</div>
+      <div class="tab-title">Headers requeridos</div>
+      <table class="param-table" style="margin-bottom:16px">
+        <thead><tr><th>Header</th><th>Descripción</th></tr></thead>
+        <tbody>
+  <tr><td class="param-name">Authorization</td><td class="param-desc">string — valor igual a API_KEY del entorno</td></tr></tbody>
+      </table>
+      <div class="tab-title">Errores posibles</div>
+      <div class="responses-wrapper">
+  <div class="response-item">
+    <span class="status-badge" style="background:#fca130">401</span>
+    <span class="response-desc">No se envió el header Authorization</span>
+  </div>
+  <div class="response-item">
+    <span class="status-badge" style="background:#fca130">403</span>
+    <span class="response-desc">El valor de Authorization no coincide con API_KEY</span>
+  </div></div>
+    </div>
+
+    
+  <div class="group-section" id="group-health">
+    <h2 class="group-title">/health</h2>
+    
+    <div class="endpoint-card" id="ep-0">
+      <div class="endpoint-header" onclick="toggle(0)">
+        <span class="method-badge" style="background:#61affe;color:#fff">GET</span>
+        <span class="endpoint-path">/health</span>
+        <span class="endpoint-desc-inline">Comprueba que la API está online y devuelve información básica del servicio.</span>
+        <div class="endpoint-badges">
+          
+          <span class="impl-badge impl-yes">implemented</span>
+          <span class="chevron" id="chev-0">▼</span>
+        </div>
+      </div>
+      <div class="endpoint-body" id="body-0" style="display:none">
+        <p class="full-desc">Comprueba que la API está online y devuelve información básica del servicio.</p>
+        <div class="section-tabs">
+          <div class="tab-section">
+            <div class="tab-title">Parámetros</div>
+            <p class="no-params">Sin parámetros</p>
+          </div>
+          <div class="tab-section">
+            <div class="tab-title">Respuestas</div>
+            <div class="responses-wrapper">
+      <div class="response-item">
+        <span class="status-badge" style="background:#49cc90">200</span>
+        <span class="response-desc">API operativa</span>
+        
+        <table class="param-table schema-table">
+          <thead><tr><th>Campo</th><th>Tipo / Descripción</th></tr></thead>
+          <tbody>
+          <tr><td class="param-name">name</td><td class="param-desc">string — nombre del servicio ('api-gateway')</td></tr>
+          <tr><td class="param-name">url</td><td class="param-desc">string — URL local del servidor</td></tr>
+          <tr><td class="param-name">online</td><td class="param-desc">boolean — siempre true si responde</td></tr></tbody>
+        </table>
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#f93e3e">500</span>
+        <span class="response-desc">Error interno del servidor</span>
+        
+      </div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="group-section" id="group-auth">
+    <h2 class="group-title">/auth</h2>
+    
+    <div class="endpoint-card" id="ep-1">
+      <div class="endpoint-header" onclick="toggle(1)">
+        <span class="method-badge" style="background:#49cc90;color:#fff">POST</span>
+        <span class="endpoint-path">/auth</span>
+        <span class="endpoint-desc-inline">Registra un nuevo usuario. Hashea la contraseña y devuelve un accessToken (1h) y un refreshToken (7d).</span>
+        <div class="endpoint-badges">
+          
+          <span class="impl-badge impl-yes">implemented</span>
+          <span class="chevron" id="chev-1">▼</span>
+        </div>
+      </div>
+      <div class="endpoint-body" id="body-1" style="display:none">
+        <p class="full-desc">Registra un nuevo usuario. Hashea la contraseña y devuelve un accessToken (1h) y un refreshToken (7d).</p>
+        <div class="section-tabs">
+          <div class="tab-section">
+            <div class="tab-title">Parámetros</div>
+            <div class="params-wrapper">
+      <div class="param-section">
+        <div class="param-label">Body</div>
+        <table class="param-table">
+          <thead><tr><th>Campo</th><th>Descripción</th></tr></thead>
+          <tbody>
+      <tr>
+        <td class="param-name">name</td>
+        <td class="param-desc">string — nombre del usuario</td>
+      </tr>
+      <tr>
+        <td class="param-name">lastName</td>
+        <td class="param-desc">string — apellido del usuario</td>
+      </tr>
+      <tr>
+        <td class="param-name">email</td>
+        <td class="param-desc">string — email único</td>
+      </tr>
+      <tr>
+        <td class="param-name">password</td>
+        <td class="param-desc">string — contraseña en texto plano (se hashea con bcrypt)</td>
+      </tr></tbody>
+        </table>
+      </div></div>
+          </div>
+          <div class="tab-section">
+            <div class="tab-title">Respuestas</div>
+            <div class="responses-wrapper">
+      <div class="response-item">
+        <span class="status-badge" style="background:#49cc90">200</span>
+        <span class="response-desc">Usuario creado correctamente</span>
+        
+        <table class="param-table schema-table">
+          <thead><tr><th>Campo</th><th>Tipo / Descripción</th></tr></thead>
+          <tbody>
+          <tr><td class="param-name">id</td><td class="param-desc">string — UUID del usuario recién creado</td></tr>
+          <tr><td class="param-name">role</td><td class="param-desc">string — rol asignado: 'student' | 'teacher' | 'admin'</td></tr>
+          <tr><td class="param-name">sessionToken</td><td class="param-desc">string — JWT con payload {id, name, lastName, email, role}, expira en 1h</td></tr>
+          <tr><td class="param-name">refreshToken</td><td class="param-desc">string — JWT con payload {id}, expira en 7d</td></tr></tbody>
+        </table>
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#fca130">400</span>
+        <span class="response-desc">Faltan campos obligatorios en el body</span>
+        
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#fca130">409</span>
+        <span class="response-desc">El email ya está en uso</span>
+        
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#f93e3e">500</span>
+        <span class="response-desc">Error interno del servidor</span>
+        
+      </div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="endpoint-card" id="ep-2">
+      <div class="endpoint-header" onclick="toggle(2)">
+        <span class="method-badge" style="background:#fca130;color:#fff">PATCH</span>
+        <span class="endpoint-path">/auth</span>
+        <span class="endpoint-desc-inline">Solicita un token de recuperación de contraseña para el email indicado. El token JWT tiene una validez de 5 minutos.</span>
+        <div class="endpoint-badges">
+          
+          <span class="impl-badge impl-yes">implemented</span>
+          <span class="chevron" id="chev-2">▼</span>
+        </div>
+      </div>
+      <div class="endpoint-body" id="body-2" style="display:none">
+        <p class="full-desc">Solicita un token de recuperación de contraseña para el email indicado. El token JWT tiene una validez de 5 minutos.</p>
+        <div class="section-tabs">
+          <div class="tab-section">
+            <div class="tab-title">Parámetros</div>
+            <div class="params-wrapper">
+      <div class="param-section">
+        <div class="param-label">Body</div>
+        <table class="param-table">
+          <thead><tr><th>Campo</th><th>Descripción</th></tr></thead>
+          <tbody>
+      <tr>
+        <td class="param-name">email</td>
+        <td class="param-desc">string — email del usuario que quiere recuperar contraseña</td>
+      </tr></tbody>
+        </table>
+      </div></div>
+          </div>
+          <div class="tab-section">
+            <div class="tab-title">Respuestas</div>
+            <div class="responses-wrapper">
+      <div class="response-item">
+        <span class="status-badge" style="background:#49cc90">200</span>
+        <span class="response-desc">Token de recuperación generado</span>
+        
+        <table class="param-table schema-table">
+          <thead><tr><th>Campo</th><th>Tipo / Descripción</th></tr></thead>
+          <tbody>
+          <tr><td class="param-name">token</td><td class="param-desc">string — JWT con payload {id, email}, expira en 5min</td></tr></tbody>
+        </table>
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#fca130">400</span>
+        <span class="response-desc">Falta el campo email</span>
+        
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#fca130">404</span>
+        <span class="response-desc">No existe ningún usuario con ese email</span>
+        
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#f93e3e">500</span>
+        <span class="response-desc">Error interno del servidor</span>
+        
+      </div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="endpoint-card" id="ep-3">
+      <div class="endpoint-header" onclick="toggle(3)">
+        <span class="method-badge" style="background:#49cc90;color:#fff">POST</span>
+        <span class="endpoint-path">/auth/login</span>
+        <span class="endpoint-desc-inline">Autentica un usuario con email y contraseña. Si son correctos devuelve un accessToken (1h) y un refreshToken (7d).</span>
+        <div class="endpoint-badges">
+          
+          <span class="impl-badge impl-yes">implemented</span>
+          <span class="chevron" id="chev-3">▼</span>
+        </div>
+      </div>
+      <div class="endpoint-body" id="body-3" style="display:none">
+        <p class="full-desc">Autentica un usuario con email y contraseña. Si son correctos devuelve un accessToken (1h) y un refreshToken (7d).</p>
+        <div class="section-tabs">
+          <div class="tab-section">
+            <div class="tab-title">Parámetros</div>
+            <div class="params-wrapper">
+      <div class="param-section">
+        <div class="param-label">Body</div>
+        <table class="param-table">
+          <thead><tr><th>Campo</th><th>Descripción</th></tr></thead>
+          <tbody>
+      <tr>
+        <td class="param-name">email</td>
+        <td class="param-desc">string — email del usuario</td>
+      </tr>
+      <tr>
+        <td class="param-name">password</td>
+        <td class="param-desc">string — contraseña en texto plano</td>
+      </tr></tbody>
+        </table>
+      </div></div>
+          </div>
+          <div class="tab-section">
+            <div class="tab-title">Respuestas</div>
+            <div class="responses-wrapper">
+      <div class="response-item">
+        <span class="status-badge" style="background:#49cc90">200</span>
+        <span class="response-desc">Login correcto</span>
+        
+        <table class="param-table schema-table">
+          <thead><tr><th>Campo</th><th>Tipo / Descripción</th></tr></thead>
+          <tbody>
+          <tr><td class="param-name">id</td><td class="param-desc">string — UUID del usuario</td></tr>
+          <tr><td class="param-name">role</td><td class="param-desc">string — rol del usuario: 'student' | 'teacher' | 'admin'</td></tr>
+          <tr><td class="param-name">sessionToken</td><td class="param-desc">string — JWT con payload {id, name, lastName, email, role}, expira en 1h</td></tr>
+          <tr><td class="param-name">refreshToken</td><td class="param-desc">string — JWT con payload {id}, expira en 7d</td></tr></tbody>
+        </table>
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#fca130">400</span>
+        <span class="response-desc">Faltan email o password</span>
+        
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#fca130">401</span>
+        <span class="response-desc">Contraseña incorrecta</span>
+        
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#fca130">404</span>
+        <span class="response-desc">No existe ningún usuario con ese email</span>
+        
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#f93e3e">500</span>
+        <span class="response-desc">Error interno del servidor</span>
+        
+      </div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="endpoint-card" id="ep-4">
+      <div class="endpoint-header" onclick="toggle(4)">
+        <span class="method-badge" style="background:#49cc90;color:#fff">POST</span>
+        <span class="endpoint-path">/auth/refresh</span>
+        <span class="endpoint-desc-inline">Genera un nuevo accessToken a partir de un refreshToken válido. Usar cuando el accessToken haya expirado.</span>
+        <div class="endpoint-badges">
+          
+          <span class="impl-badge impl-yes">implemented</span>
+          <span class="chevron" id="chev-4">▼</span>
+        </div>
+      </div>
+      <div class="endpoint-body" id="body-4" style="display:none">
+        <p class="full-desc">Genera un nuevo accessToken a partir de un refreshToken válido. Usar cuando el accessToken haya expirado.</p>
+        <div class="section-tabs">
+          <div class="tab-section">
+            <div class="tab-title">Parámetros</div>
+            <div class="params-wrapper">
+      <div class="param-section">
+        <div class="param-label">Body</div>
+        <table class="param-table">
+          <thead><tr><th>Campo</th><th>Descripción</th></tr></thead>
+          <tbody>
+      <tr>
+        <td class="param-name">refreshToken</td>
+        <td class="param-desc">string — JWT de refresco obtenido en POST /auth (válido 7d)</td>
+      </tr></tbody>
+        </table>
+      </div></div>
+          </div>
+          <div class="tab-section">
+            <div class="tab-title">Respuestas</div>
+            <div class="responses-wrapper">
+      <div class="response-item">
+        <span class="status-badge" style="background:#49cc90">200</span>
+        <span class="response-desc">Nuevo sessionToken generado</span>
+        
+        <table class="param-table schema-table">
+          <thead><tr><th>Campo</th><th>Tipo / Descripción</th></tr></thead>
+          <tbody>
+          <tr><td class="param-name">sessionToken</td><td class="param-desc">string — JWT con payload {id, name, lastName, email, role}, expira en 1h</td></tr></tbody>
+        </table>
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#fca130">400</span>
+        <span class="response-desc">Falta el campo refreshToken</span>
+        
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#fca130">401</span>
+        <span class="response-desc">refreshToken inválido o expirado</span>
+        
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#fca130">404</span>
+        <span class="response-desc">Usuario no encontrado</span>
+        
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#f93e3e">500</span>
+        <span class="response-desc">Error interno del servidor</span>
+        
+      </div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="endpoint-card" id="ep-5">
+      <div class="endpoint-header" onclick="toggle(5)">
+        <span class="method-badge" style="background:#fca130;color:#fff">PATCH</span>
+        <span class="endpoint-path">/auth/:token</span>
+        <span class="endpoint-desc-inline">Cambia la contraseña del usuario usando el token de recuperación obtenido en PATCH /auth. El token se verifica y se extrae el email del payload.</span>
+        <div class="endpoint-badges">
+          
+          <span class="impl-badge impl-yes">implemented</span>
+          <span class="chevron" id="chev-5">▼</span>
+        </div>
+      </div>
+      <div class="endpoint-body" id="body-5" style="display:none">
+        <p class="full-desc">Cambia la contraseña del usuario usando el token de recuperación obtenido en PATCH /auth. El token se verifica y se extrae el email del payload.</p>
+        <div class="section-tabs">
+          <div class="tab-section">
+            <div class="tab-title">Parámetros</div>
+            <div class="params-wrapper">
+      <div class="param-section">
+        <div class="param-label">Path params</div>
+        <table class="param-table">
+          <thead><tr><th>Campo</th><th>Descripción</th></tr></thead>
+          <tbody>
+      <tr>
+        <td class="param-name">token</td>
+        <td class="param-desc">string — JWT de recuperación obtenido en PATCH /auth (válido 5min)</td>
+      </tr></tbody>
+        </table>
+      </div>
+      <div class="param-section">
+        <div class="param-label">Body</div>
+        <table class="param-table">
+          <thead><tr><th>Campo</th><th>Descripción</th></tr></thead>
+          <tbody>
+      <tr>
+        <td class="param-name">password</td>
+        <td class="param-desc">string — nueva contraseña en texto plano (se hashea con bcrypt)</td>
+      </tr></tbody>
+        </table>
+      </div></div>
+          </div>
+          <div class="tab-section">
+            <div class="tab-title">Respuestas</div>
+            <div class="responses-wrapper">
+      <div class="response-item">
+        <span class="status-badge" style="background:#49cc90">200</span>
+        <span class="response-desc">Contraseña actualizada correctamente</span>
+        
+        <table class="param-table schema-table">
+          <thead><tr><th>Campo</th><th>Tipo / Descripción</th></tr></thead>
+          <tbody>
+          <tr><td class="param-name">message</td><td class="param-desc">string — 'Password updated successfully'</td></tr></tbody>
+        </table>
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#fca130">400</span>
+        <span class="response-desc">Falta el token en la ruta o la nueva contraseña en el body</span>
+        
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#fca130">401</span>
+        <span class="response-desc">Token inválido o expirado</span>
+        
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#fca130">404</span>
+        <span class="response-desc">Usuario no encontrado</span>
+        
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#f93e3e">500</span>
+        <span class="response-desc">Error interno del servidor</span>
+        
+      </div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="group-section" id="group-user">
+    <h2 class="group-title">/user</h2>
+    
+    <div class="endpoint-card" id="ep-6">
+      <div class="endpoint-header" onclick="toggle(6)">
+        <span class="method-badge" style="background:#61affe;color:#fff">GET</span>
+        <span class="endpoint-path">/user</span>
+        <span class="endpoint-desc-inline">Comprueba si existe un usuario con el email indicado. Devuelve un booleano, sin exponer datos del usuario.</span>
+        <div class="endpoint-badges">
+          
+          <span class="impl-badge impl-yes">implemented</span>
+          <span class="chevron" id="chev-6">▼</span>
+        </div>
+      </div>
+      <div class="endpoint-body" id="body-6" style="display:none">
+        <p class="full-desc">Comprueba si existe un usuario con el email indicado. Devuelve un booleano, sin exponer datos del usuario.</p>
+        <div class="section-tabs">
+          <div class="tab-section">
+            <div class="tab-title">Parámetros</div>
+            <div class="params-wrapper">
+      <div class="param-section">
+        <div class="param-label">Query params</div>
+        <table class="param-table">
+          <thead><tr><th>Campo</th><th>Descripción</th></tr></thead>
+          <tbody>
+      <tr>
+        <td class="param-name">email</td>
+        <td class="param-desc">string — email a comprobar</td>
+      </tr></tbody>
+        </table>
+      </div></div>
+          </div>
+          <div class="tab-section">
+            <div class="tab-title">Respuestas</div>
+            <div class="responses-wrapper">
+      <div class="response-item">
+        <span class="status-badge" style="background:#49cc90">200</span>
+        <span class="response-desc">Consulta resuelta</span>
+        
+        <table class="param-table schema-table">
+          <thead><tr><th>Campo</th><th>Tipo / Descripción</th></tr></thead>
+          <tbody>
+          <tr><td class="param-name">exists</td><td class="param-desc">boolean — true si el email está registrado, false si no</td></tr></tbody>
+        </table>
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#fca130">400</span>
+        <span class="response-desc">Falta el query param email</span>
+        
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#f93e3e">500</span>
+        <span class="response-desc">Error interno del servidor</span>
+        
+      </div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="endpoint-card" id="ep-7">
+      <div class="endpoint-header" onclick="toggle(7)">
+        <span class="method-badge" style="background:#61affe;color:#fff">GET</span>
+        <span class="endpoint-path">/user/:id</span>
+        <span class="endpoint-desc-inline">Devuelve los datos de un usuario por su UUID.</span>
+        <div class="endpoint-badges">
+          
+          <span class="impl-badge impl-yes">implemented</span>
+          <span class="chevron" id="chev-7">▼</span>
+        </div>
+      </div>
+      <div class="endpoint-body" id="body-7" style="display:none">
+        <p class="full-desc">Devuelve los datos de un usuario por su UUID.</p>
+        <div class="section-tabs">
+          <div class="tab-section">
+            <div class="tab-title">Parámetros</div>
+            <div class="params-wrapper">
+      <div class="param-section">
+        <div class="param-label">Path params</div>
+        <table class="param-table">
+          <thead><tr><th>Campo</th><th>Descripción</th></tr></thead>
+          <tbody>
+      <tr>
+        <td class="param-name">id</td>
+        <td class="param-desc">string — UUID del usuario</td>
+      </tr></tbody>
+        </table>
+      </div></div>
+          </div>
+          <div class="tab-section">
+            <div class="tab-title">Respuestas</div>
+            <div class="responses-wrapper">
+      <div class="response-item">
+        <span class="status-badge" style="background:#49cc90">200</span>
+        <span class="response-desc">Datos del usuario</span>
+        
+        <table class="param-table schema-table">
+          <thead><tr><th>Campo</th><th>Tipo / Descripción</th></tr></thead>
+          <tbody>
+          <tr><td class="param-name">id</td><td class="param-desc">string — UUID</td></tr>
+          <tr><td class="param-name">name</td><td class="param-desc">string</td></tr>
+          <tr><td class="param-name">lastName</td><td class="param-desc">string</td></tr>
+          <tr><td class="param-name">email</td><td class="param-desc">string</td></tr>
+          <tr><td class="param-name">role</td><td class="param-desc">string — 'student' | 'teacher' | 'admin'</td></tr>
+          <tr><td class="param-name">institution_id</td><td class="param-desc">string | null — UUID de la institución</td></tr>
+          <tr><td class="param-name">created_at</td><td class="param-desc">datetime | null</td></tr>
+          <tr><td class="param-name">updated_at</td><td class="param-desc">datetime | null</td></tr>
+          <tr><td class="param-name">last_login_at</td><td class="param-desc">datetime | null</td></tr></tbody>
+        </table>
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#fca130">400</span>
+        <span class="response-desc">Falta el parámetro id</span>
+        
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#fca130">404</span>
+        <span class="response-desc">Usuario no encontrado</span>
+        
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#f93e3e">500</span>
+        <span class="response-desc">Error interno del servidor</span>
+        
+      </div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="endpoint-card" id="ep-8">
+      <div class="endpoint-header" onclick="toggle(8)">
+        <span class="method-badge" style="background:#fca130;color:#fff">PATCH</span>
+        <span class="endpoint-path">/user/:id</span>
+        <span class="endpoint-desc-inline">Actualiza los datos de un usuario. Solo se modifican los campos enviados en el body.</span>
+        <div class="endpoint-badges">
+          
+          <span class="impl-badge impl-yes">implemented</span>
+          <span class="chevron" id="chev-8">▼</span>
+        </div>
+      </div>
+      <div class="endpoint-body" id="body-8" style="display:none">
+        <p class="full-desc">Actualiza los datos de un usuario. Solo se modifican los campos enviados en el body.</p>
+        <div class="section-tabs">
+          <div class="tab-section">
+            <div class="tab-title">Parámetros</div>
+            <div class="params-wrapper">
+      <div class="param-section">
+        <div class="param-label">Path params</div>
+        <table class="param-table">
+          <thead><tr><th>Campo</th><th>Descripción</th></tr></thead>
+          <tbody>
+      <tr>
+        <td class="param-name">id</td>
+        <td class="param-desc">string — UUID del usuario</td>
+      </tr></tbody>
+        </table>
+      </div>
+      <div class="param-section">
+        <div class="param-label">Body</div>
+        <table class="param-table">
+          <thead><tr><th>Campo</th><th>Descripción</th></tr></thead>
+          <tbody>
+      <tr>
+        <td class="param-name">name</td>
+        <td class="param-desc">string — (opcional) nuevo nombre</td>
+      </tr>
+      <tr>
+        <td class="param-name">lastName</td>
+        <td class="param-desc">string — (opcional) nuevo apellido</td>
+      </tr>
+      <tr>
+        <td class="param-name">email</td>
+        <td class="param-desc">string — (opcional) nuevo email, debe ser único</td>
+      </tr></tbody>
+        </table>
+      </div></div>
+          </div>
+          <div class="tab-section">
+            <div class="tab-title">Respuestas</div>
+            <div class="responses-wrapper">
+      <div class="response-item">
+        <span class="status-badge" style="background:#49cc90">200</span>
+        <span class="response-desc">Usuario actualizado correctamente</span>
+        
+        <table class="param-table schema-table">
+          <thead><tr><th>Campo</th><th>Tipo / Descripción</th></tr></thead>
+          <tbody>
+          <tr><td class="param-name">message</td><td class="param-desc">string — 'User updated successfully'</td></tr></tbody>
+        </table>
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#fca130">400</span>
+        <span class="response-desc">Falta el parámetro id o el body está vacío</span>
+        
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#fca130">404</span>
+        <span class="response-desc">Usuario no encontrado</span>
+        
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#fca130">409</span>
+        <span class="response-desc">El email ya está en uso por otro usuario</span>
+        
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#f93e3e">500</span>
+        <span class="response-desc">Error interno del servidor</span>
+        
+      </div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="endpoint-card" id="ep-9">
+      <div class="endpoint-header" onclick="toggle(9)">
+        <span class="method-badge" style="background:#f93e3e;color:#fff">DELETE</span>
+        <span class="endpoint-path">/user/:id</span>
+        <span class="endpoint-desc-inline">Elimina un usuario por su UUID.</span>
+        <div class="endpoint-badges">
+          
+          <span class="impl-badge impl-yes">implemented</span>
+          <span class="chevron" id="chev-9">▼</span>
+        </div>
+      </div>
+      <div class="endpoint-body" id="body-9" style="display:none">
+        <p class="full-desc">Elimina un usuario por su UUID.</p>
+        <div class="section-tabs">
+          <div class="tab-section">
+            <div class="tab-title">Parámetros</div>
+            <div class="params-wrapper">
+      <div class="param-section">
+        <div class="param-label">Path params</div>
+        <table class="param-table">
+          <thead><tr><th>Campo</th><th>Descripción</th></tr></thead>
+          <tbody>
+      <tr>
+        <td class="param-name">id</td>
+        <td class="param-desc">string — UUID del usuario</td>
+      </tr></tbody>
+        </table>
+      </div></div>
+          </div>
+          <div class="tab-section">
+            <div class="tab-title">Respuestas</div>
+            <div class="responses-wrapper">
+      <div class="response-item">
+        <span class="status-badge" style="background:#49cc90">200</span>
+        <span class="response-desc">Usuario eliminado correctamente</span>
+        
+        <table class="param-table schema-table">
+          <thead><tr><th>Campo</th><th>Tipo / Descripción</th></tr></thead>
+          <tbody>
+          <tr><td class="param-name">message</td><td class="param-desc">string — 'User deleted successfully'</td></tr></tbody>
+        </table>
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#fca130">400</span>
+        <span class="response-desc">Falta el parámetro id</span>
+        
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#fca130">404</span>
+        <span class="response-desc">Usuario no encontrado</span>
+        
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#f93e3e">500</span>
+        <span class="response-desc">Error interno del servidor</span>
+        
+      </div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="endpoint-card" id="ep-10">
+      <div class="endpoint-header" onclick="toggle(10)">
+        <span class="method-badge" style="background:#61affe;color:#fff">GET</span>
+        <span class="endpoint-path">/user/:id/challenges</span>
+        <span class="endpoint-desc-inline">Devuelve el historial de retos del usuario: todos los desafíos en los que está inscrito, con detalles del reto, estado (completed | in_progress) y fechas.</span>
+        <div class="endpoint-badges">
+          
+          <span class="impl-badge impl-yes">implemented</span>
+          <span class="chevron" id="chev-10">▼</span>
+        </div>
+      </div>
+      <div class="endpoint-body" id="body-10" style="display:none">
+        <p class="full-desc">Devuelve el historial de retos del usuario: todos los desafíos en los que está inscrito, con detalles del reto, estado (completed | in_progress) y fechas.</p>
+        <div class="section-tabs">
+          <div class="tab-section">
+            <div class="tab-title">Parámetros</div>
+            <div class="params-wrapper">
+      <div class="param-section">
+        <div class="param-label">Headers</div>
+        <table class="param-table">
+          <thead><tr><th>Campo</th><th>Descripción</th></tr></thead>
+          <tbody>
+      <tr>
+        <td class="param-name">x-session-token</td>
+        <td class="param-desc">string — JWT de sesión</td>
+      </tr></tbody>
+        </table>
+      </div>
+      <div class="param-section">
+        <div class="param-label">Path params</div>
+        <table class="param-table">
+          <thead><tr><th>Campo</th><th>Descripción</th></tr></thead>
+          <tbody>
+      <tr>
+        <td class="param-name">id</td>
+        <td class="param-desc">string — UUID del usuario</td>
+      </tr></tbody>
+        </table>
+      </div></div>
+          </div>
+          <div class="tab-section">
+            <div class="tab-title">Respuestas</div>
+            <div class="responses-wrapper">
+      <div class="response-item">
+        <span class="status-badge" style="background:#49cc90">200</span>
+        <span class="response-desc">Lista de retos del usuario</span>
+        
+        <table class="param-table schema-table">
+          <thead><tr><th>Campo</th><th>Tipo / Descripción</th></tr></thead>
+          <tbody>
+          <tr><td class="param-name">data</td><td class="param-desc">array — [{ challenge_id, challenge_name, description, points, class_id, enrolled_at, completed_at, status: 'completed' | 'in_progress' }]</td></tr></tbody>
+        </table>
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#fca130">400</span>
+        <span class="response-desc">Falta el parámetro id</span>
+        
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#fca130">404</span>
+        <span class="response-desc">Usuario no encontrado</span>
+        
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#f93e3e">500</span>
+        <span class="response-desc">Error interno del servidor</span>
+        
+      </div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="group-section" id="group-class">
+    <h2 class="group-title">/class</h2>
+    
+    <div class="endpoint-card" id="ep-11">
+      <div class="endpoint-header" onclick="toggle(11)">
+        <span class="method-badge" style="background:#49cc90;color:#fff">POST</span>
+        <span class="endpoint-path">/class</span>
+        <span class="endpoint-desc-inline">Crea una nueva clase asignada a un tutor.</span>
+        <div class="endpoint-badges">
+          <span class="role-badge">teacher</span><span class="role-badge">admin</span>
+          <span class="impl-badge impl-yes">implemented</span>
+          <span class="chevron" id="chev-11">▼</span>
+        </div>
+      </div>
+      <div class="endpoint-body" id="body-11" style="display:none">
+        <p class="full-desc">Crea una nueva clase asignada a un tutor.</p>
+        <div class="section-tabs">
+          <div class="tab-section">
+            <div class="tab-title">Parámetros</div>
+            <div class="params-wrapper">
+      <div class="param-section">
+        <div class="param-label">Headers</div>
+        <table class="param-table">
+          <thead><tr><th>Campo</th><th>Descripción</th></tr></thead>
+          <tbody>
+      <tr>
+        <td class="param-name">x-session-token</td>
+        <td class="param-desc">string — JWT de sesión</td>
+      </tr></tbody>
+        </table>
+      </div>
+      <div class="param-section">
+        <div class="param-label">Body</div>
+        <table class="param-table">
+          <thead><tr><th>Campo</th><th>Descripción</th></tr></thead>
+          <tbody>
+      <tr>
+        <td class="param-name">name</td>
+        <td class="param-desc">string — nombre de la clase</td>
+      </tr>
+      <tr>
+        <td class="param-name">tutor_id</td>
+        <td class="param-desc">string — UUID del usuario tutor</td>
+      </tr>
+      <tr>
+        <td class="param-name">description</td>
+        <td class="param-desc">string — (opcional) descripción de la clase</td>
+      </tr></tbody>
+        </table>
+      </div></div>
+          </div>
+          <div class="tab-section">
+            <div class="tab-title">Respuestas</div>
+            <div class="responses-wrapper">
+      <div class="response-item">
+        <span class="status-badge" style="background:#49cc90">200</span>
+        <span class="response-desc">Clase creada</span>
+        
+        <table class="param-table schema-table">
+          <thead><tr><th>Campo</th><th>Tipo / Descripción</th></tr></thead>
+          <tbody>
+          <tr><td class="param-name">id</td><td class="param-desc">string — UUID de la clase creada</td></tr></tbody>
+        </table>
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#fca130">400</span>
+        <span class="response-desc">Faltan name o tutor_id</span>
+        
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#fca130">403</span>
+        <span class="response-desc">El usuario no tiene permisos (rol student)</span>
+        
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#f93e3e">500</span>
+        <span class="response-desc">Error interno del servidor</span>
+        
+      </div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="endpoint-card" id="ep-12">
+      <div class="endpoint-header" onclick="toggle(12)">
+        <span class="method-badge" style="background:#61affe;color:#fff">GET</span>
+        <span class="endpoint-path">/class/:id</span>
+        <span class="endpoint-desc-inline">Devuelve los datos de una clase por su UUID.</span>
+        <div class="endpoint-badges">
+          
+          <span class="impl-badge impl-yes">implemented</span>
+          <span class="chevron" id="chev-12">▼</span>
+        </div>
+      </div>
+      <div class="endpoint-body" id="body-12" style="display:none">
+        <p class="full-desc">Devuelve los datos de una clase por su UUID.</p>
+        <div class="section-tabs">
+          <div class="tab-section">
+            <div class="tab-title">Parámetros</div>
+            <div class="params-wrapper">
+      <div class="param-section">
+        <div class="param-label">Headers</div>
+        <table class="param-table">
+          <thead><tr><th>Campo</th><th>Descripción</th></tr></thead>
+          <tbody>
+      <tr>
+        <td class="param-name">x-session-token</td>
+        <td class="param-desc">string — JWT de sesión</td>
+      </tr></tbody>
+        </table>
+      </div>
+      <div class="param-section">
+        <div class="param-label">Path params</div>
+        <table class="param-table">
+          <thead><tr><th>Campo</th><th>Descripción</th></tr></thead>
+          <tbody>
+      <tr>
+        <td class="param-name">id</td>
+        <td class="param-desc">string — UUID de la clase</td>
+      </tr></tbody>
+        </table>
+      </div></div>
+          </div>
+          <div class="tab-section">
+            <div class="tab-title">Respuestas</div>
+            <div class="responses-wrapper">
+      <div class="response-item">
+        <span class="status-badge" style="background:#49cc90">200</span>
+        <span class="response-desc">Datos de la clase</span>
+        
+        <table class="param-table schema-table">
+          <thead><tr><th>Campo</th><th>Tipo / Descripción</th></tr></thead>
+          <tbody>
+          <tr><td class="param-name">id</td><td class="param-desc">string</td></tr>
+          <tr><td class="param-name">name</td><td class="param-desc">string</td></tr>
+          <tr><td class="param-name">tutor_id</td><td class="param-desc">string</td></tr>
+          <tr><td class="param-name">description</td><td class="param-desc">string|null</td></tr>
+          <tr><td class="param-name">created_at</td><td class="param-desc">datetime</td></tr>
+          <tr><td class="param-name">updated_at</td><td class="param-desc">datetime</td></tr></tbody>
+        </table>
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#fca130">404</span>
+        <span class="response-desc">Clase no encontrada</span>
+        
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#f93e3e">500</span>
+        <span class="response-desc">Error interno del servidor</span>
+        
+      </div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="endpoint-card" id="ep-13">
+      <div class="endpoint-header" onclick="toggle(13)">
+        <span class="method-badge" style="background:#fca130;color:#fff">PATCH</span>
+        <span class="endpoint-path">/class/:id</span>
+        <span class="endpoint-desc-inline">Actualiza los datos de una clase. Solo se modifican los campos enviados.</span>
+        <div class="endpoint-badges">
+          
+          <span class="impl-badge impl-yes">implemented</span>
+          <span class="chevron" id="chev-13">▼</span>
+        </div>
+      </div>
+      <div class="endpoint-body" id="body-13" style="display:none">
+        <p class="full-desc">Actualiza los datos de una clase. Solo se modifican los campos enviados.</p>
+        <div class="section-tabs">
+          <div class="tab-section">
+            <div class="tab-title">Parámetros</div>
+            <div class="params-wrapper">
+      <div class="param-section">
+        <div class="param-label">Headers</div>
+        <table class="param-table">
+          <thead><tr><th>Campo</th><th>Descripción</th></tr></thead>
+          <tbody>
+      <tr>
+        <td class="param-name">x-session-token</td>
+        <td class="param-desc">string — JWT de sesión</td>
+      </tr></tbody>
+        </table>
+      </div>
+      <div class="param-section">
+        <div class="param-label">Path params</div>
+        <table class="param-table">
+          <thead><tr><th>Campo</th><th>Descripción</th></tr></thead>
+          <tbody>
+      <tr>
+        <td class="param-name">id</td>
+        <td class="param-desc">string — UUID de la clase</td>
+      </tr></tbody>
+        </table>
+      </div>
+      <div class="param-section">
+        <div class="param-label">Body</div>
+        <table class="param-table">
+          <thead><tr><th>Campo</th><th>Descripción</th></tr></thead>
+          <tbody>
+      <tr>
+        <td class="param-name">name</td>
+        <td class="param-desc">string — (opcional) nuevo nombre</td>
+      </tr>
+      <tr>
+        <td class="param-name">description</td>
+        <td class="param-desc">string — (opcional) nueva descripción</td>
+      </tr></tbody>
+        </table>
+      </div></div>
+          </div>
+          <div class="tab-section">
+            <div class="tab-title">Respuestas</div>
+            <div class="responses-wrapper">
+      <div class="response-item">
+        <span class="status-badge" style="background:#49cc90">200</span>
+        <span class="response-desc">Clase actualizada</span>
+        
+        <table class="param-table schema-table">
+          <thead><tr><th>Campo</th><th>Tipo / Descripción</th></tr></thead>
+          <tbody>
+          <tr><td class="param-name">message</td><td class="param-desc">string</td></tr></tbody>
+        </table>
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#fca130">400</span>
+        <span class="response-desc">Falta id o body vacío</span>
+        
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#fca130">404</span>
+        <span class="response-desc">Clase no encontrada</span>
+        
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#f93e3e">500</span>
+        <span class="response-desc">Error interno del servidor</span>
+        
+      </div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="endpoint-card" id="ep-14">
+      <div class="endpoint-header" onclick="toggle(14)">
+        <span class="method-badge" style="background:#f93e3e;color:#fff">DELETE</span>
+        <span class="endpoint-path">/class/:id</span>
+        <span class="endpoint-desc-inline">Elimina una clase por su UUID. Elimina en cascada sus challenges y matrículas.</span>
+        <div class="endpoint-badges">
+          
+          <span class="impl-badge impl-yes">implemented</span>
+          <span class="chevron" id="chev-14">▼</span>
+        </div>
+      </div>
+      <div class="endpoint-body" id="body-14" style="display:none">
+        <p class="full-desc">Elimina una clase por su UUID. Elimina en cascada sus challenges y matrículas.</p>
+        <div class="section-tabs">
+          <div class="tab-section">
+            <div class="tab-title">Parámetros</div>
+            <div class="params-wrapper">
+      <div class="param-section">
+        <div class="param-label">Headers</div>
+        <table class="param-table">
+          <thead><tr><th>Campo</th><th>Descripción</th></tr></thead>
+          <tbody>
+      <tr>
+        <td class="param-name">x-session-token</td>
+        <td class="param-desc">string — JWT de sesión</td>
+      </tr></tbody>
+        </table>
+      </div>
+      <div class="param-section">
+        <div class="param-label">Path params</div>
+        <table class="param-table">
+          <thead><tr><th>Campo</th><th>Descripción</th></tr></thead>
+          <tbody>
+      <tr>
+        <td class="param-name">id</td>
+        <td class="param-desc">string — UUID de la clase</td>
+      </tr></tbody>
+        </table>
+      </div></div>
+          </div>
+          <div class="tab-section">
+            <div class="tab-title">Respuestas</div>
+            <div class="responses-wrapper">
+      <div class="response-item">
+        <span class="status-badge" style="background:#49cc90">200</span>
+        <span class="response-desc">Clase eliminada</span>
+        
+        <table class="param-table schema-table">
+          <thead><tr><th>Campo</th><th>Tipo / Descripción</th></tr></thead>
+          <tbody>
+          <tr><td class="param-name">message</td><td class="param-desc">string</td></tr></tbody>
+        </table>
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#fca130">404</span>
+        <span class="response-desc">Clase no encontrada</span>
+        
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#f93e3e">500</span>
+        <span class="response-desc">Error interno del servidor</span>
+        
+      </div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="group-section" id="group-institution">
+    <h2 class="group-title">/institution</h2>
+    
+    <div class="endpoint-card" id="ep-15">
+      <div class="endpoint-header" onclick="toggle(15)">
+        <span class="method-badge" style="background:#49cc90;color:#fff">POST</span>
+        <span class="endpoint-path">/institution</span>
+        <span class="endpoint-desc-inline">Crea una nueva institución educativa con sus dominios de alumno y profesor.</span>
+        <div class="endpoint-badges">
+          <span class="role-badge">admin</span>
+          <span class="impl-badge impl-yes">implemented</span>
+          <span class="chevron" id="chev-15">▼</span>
+        </div>
+      </div>
+      <div class="endpoint-body" id="body-15" style="display:none">
+        <p class="full-desc">Crea una nueva institución educativa con sus dominios de alumno y profesor.</p>
+        <div class="section-tabs">
+          <div class="tab-section">
+            <div class="tab-title">Parámetros</div>
+            <div class="params-wrapper">
+      <div class="param-section">
+        <div class="param-label">Headers</div>
+        <table class="param-table">
+          <thead><tr><th>Campo</th><th>Descripción</th></tr></thead>
+          <tbody>
+      <tr>
+        <td class="param-name">x-session-token</td>
+        <td class="param-desc">string — JWT de sesión</td>
+      </tr></tbody>
+        </table>
+      </div>
+      <div class="param-section">
+        <div class="param-label">Body</div>
+        <table class="param-table">
+          <thead><tr><th>Campo</th><th>Descripción</th></tr></thead>
+          <tbody>
+      <tr>
+        <td class="param-name">name</td>
+        <td class="param-desc">string — nombre de la institución</td>
+      </tr>
+      <tr>
+        <td class="param-name">student_domain</td>
+        <td class="param-desc">string — dominio de email para alumnos</td>
+      </tr>
+      <tr>
+        <td class="param-name">teacher_domain</td>
+        <td class="param-desc">string — dominio de email para profesores</td>
+      </tr></tbody>
+        </table>
+      </div></div>
+          </div>
+          <div class="tab-section">
+            <div class="tab-title">Respuestas</div>
+            <div class="responses-wrapper">
+      <div class="response-item">
+        <span class="status-badge" style="background:#49cc90">200</span>
+        <span class="response-desc">Institución creada</span>
+        
+        <table class="param-table schema-table">
+          <thead><tr><th>Campo</th><th>Tipo / Descripción</th></tr></thead>
+          <tbody>
+          <tr><td class="param-name">id</td><td class="param-desc">string — UUID de la institución</td></tr></tbody>
+        </table>
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#fca130">400</span>
+        <span class="response-desc">Faltan campos obligatorios</span>
+        
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#fca130">403</span>
+        <span class="response-desc">Solo admin puede crear instituciones</span>
+        
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#f93e3e">500</span>
+        <span class="response-desc">Error interno del servidor</span>
+        
+      </div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="endpoint-card" id="ep-16">
+      <div class="endpoint-header" onclick="toggle(16)">
+        <span class="method-badge" style="background:#61affe;color:#fff">GET</span>
+        <span class="endpoint-path">/institution/:id</span>
+        <span class="endpoint-desc-inline">Devuelve los datos de una institución por su UUID.</span>
+        <div class="endpoint-badges">
+          
+          <span class="impl-badge impl-yes">implemented</span>
+          <span class="chevron" id="chev-16">▼</span>
+        </div>
+      </div>
+      <div class="endpoint-body" id="body-16" style="display:none">
+        <p class="full-desc">Devuelve los datos de una institución por su UUID.</p>
+        <div class="section-tabs">
+          <div class="tab-section">
+            <div class="tab-title">Parámetros</div>
+            <div class="params-wrapper">
+      <div class="param-section">
+        <div class="param-label">Headers</div>
+        <table class="param-table">
+          <thead><tr><th>Campo</th><th>Descripción</th></tr></thead>
+          <tbody>
+      <tr>
+        <td class="param-name">x-session-token</td>
+        <td class="param-desc">string — JWT de sesión</td>
+      </tr></tbody>
+        </table>
+      </div>
+      <div class="param-section">
+        <div class="param-label">Path params</div>
+        <table class="param-table">
+          <thead><tr><th>Campo</th><th>Descripción</th></tr></thead>
+          <tbody>
+      <tr>
+        <td class="param-name">id</td>
+        <td class="param-desc">string — UUID de la institución</td>
+      </tr></tbody>
+        </table>
+      </div></div>
+          </div>
+          <div class="tab-section">
+            <div class="tab-title">Respuestas</div>
+            <div class="responses-wrapper">
+      <div class="response-item">
+        <span class="status-badge" style="background:#49cc90">200</span>
+        <span class="response-desc">Datos de la institución</span>
+        
+        <table class="param-table schema-table">
+          <thead><tr><th>Campo</th><th>Tipo / Descripción</th></tr></thead>
+          <tbody>
+          <tr><td class="param-name">id</td><td class="param-desc">string</td></tr>
+          <tr><td class="param-name">name</td><td class="param-desc">string</td></tr>
+          <tr><td class="param-name">student_domain</td><td class="param-desc">string</td></tr>
+          <tr><td class="param-name">teacher_domain</td><td class="param-desc">string</td></tr>
+          <tr><td class="param-name">created_at</td><td class="param-desc">datetime</td></tr></tbody>
+        </table>
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#fca130">404</span>
+        <span class="response-desc">Institución no encontrada</span>
+        
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#f93e3e">500</span>
+        <span class="response-desc">Error interno del servidor</span>
+        
+      </div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="endpoint-card" id="ep-17">
+      <div class="endpoint-header" onclick="toggle(17)">
+        <span class="method-badge" style="background:#fca130;color:#fff">PATCH</span>
+        <span class="endpoint-path">/institution/:id</span>
+        <span class="endpoint-desc-inline">Actualiza los datos de una institución. Solo se modifican los campos enviados.</span>
+        <div class="endpoint-badges">
+          <span class="role-badge">admin</span>
+          <span class="impl-badge impl-yes">implemented</span>
+          <span class="chevron" id="chev-17">▼</span>
+        </div>
+      </div>
+      <div class="endpoint-body" id="body-17" style="display:none">
+        <p class="full-desc">Actualiza los datos de una institución. Solo se modifican los campos enviados.</p>
+        <div class="section-tabs">
+          <div class="tab-section">
+            <div class="tab-title">Parámetros</div>
+            <div class="params-wrapper">
+      <div class="param-section">
+        <div class="param-label">Headers</div>
+        <table class="param-table">
+          <thead><tr><th>Campo</th><th>Descripción</th></tr></thead>
+          <tbody>
+      <tr>
+        <td class="param-name">x-session-token</td>
+        <td class="param-desc">string — JWT de sesión</td>
+      </tr></tbody>
+        </table>
+      </div>
+      <div class="param-section">
+        <div class="param-label">Path params</div>
+        <table class="param-table">
+          <thead><tr><th>Campo</th><th>Descripción</th></tr></thead>
+          <tbody>
+      <tr>
+        <td class="param-name">id</td>
+        <td class="param-desc">string — UUID de la institución</td>
+      </tr></tbody>
+        </table>
+      </div>
+      <div class="param-section">
+        <div class="param-label">Body</div>
+        <table class="param-table">
+          <thead><tr><th>Campo</th><th>Descripción</th></tr></thead>
+          <tbody>
+      <tr>
+        <td class="param-name">name</td>
+        <td class="param-desc">string — (opcional) nuevo nombre</td>
+      </tr>
+      <tr>
+        <td class="param-name">student_domain</td>
+        <td class="param-desc">string — (opcional) nuevo dominio de alumnos</td>
+      </tr>
+      <tr>
+        <td class="param-name">teacher_domain</td>
+        <td class="param-desc">string — (opcional) nuevo dominio de profesores</td>
+      </tr></tbody>
+        </table>
+      </div></div>
+          </div>
+          <div class="tab-section">
+            <div class="tab-title">Respuestas</div>
+            <div class="responses-wrapper">
+      <div class="response-item">
+        <span class="status-badge" style="background:#49cc90">200</span>
+        <span class="response-desc">Institución actualizada</span>
+        
+        <table class="param-table schema-table">
+          <thead><tr><th>Campo</th><th>Tipo / Descripción</th></tr></thead>
+          <tbody>
+          <tr><td class="param-name">message</td><td class="param-desc">string</td></tr></tbody>
+        </table>
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#fca130">400</span>
+        <span class="response-desc">Falta id o body vacío</span>
+        
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#fca130">403</span>
+        <span class="response-desc">Solo admin puede modificar instituciones</span>
+        
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#fca130">404</span>
+        <span class="response-desc">Institución no encontrada</span>
+        
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#f93e3e">500</span>
+        <span class="response-desc">Error interno del servidor</span>
+        
+      </div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="endpoint-card" id="ep-18">
+      <div class="endpoint-header" onclick="toggle(18)">
+        <span class="method-badge" style="background:#f93e3e;color:#fff">DELETE</span>
+        <span class="endpoint-path">/institution/:id</span>
+        <span class="endpoint-desc-inline">Elimina una institución. Los usuarios de esa institución quedan con institution_id a null.</span>
+        <div class="endpoint-badges">
+          <span class="role-badge">admin</span>
+          <span class="impl-badge impl-yes">implemented</span>
+          <span class="chevron" id="chev-18">▼</span>
+        </div>
+      </div>
+      <div class="endpoint-body" id="body-18" style="display:none">
+        <p class="full-desc">Elimina una institución. Los usuarios de esa institución quedan con institution_id a null.</p>
+        <div class="section-tabs">
+          <div class="tab-section">
+            <div class="tab-title">Parámetros</div>
+            <div class="params-wrapper">
+      <div class="param-section">
+        <div class="param-label">Headers</div>
+        <table class="param-table">
+          <thead><tr><th>Campo</th><th>Descripción</th></tr></thead>
+          <tbody>
+      <tr>
+        <td class="param-name">x-session-token</td>
+        <td class="param-desc">string — JWT de sesión</td>
+      </tr></tbody>
+        </table>
+      </div>
+      <div class="param-section">
+        <div class="param-label">Path params</div>
+        <table class="param-table">
+          <thead><tr><th>Campo</th><th>Descripción</th></tr></thead>
+          <tbody>
+      <tr>
+        <td class="param-name">id</td>
+        <td class="param-desc">string — UUID de la institución</td>
+      </tr></tbody>
+        </table>
+      </div></div>
+          </div>
+          <div class="tab-section">
+            <div class="tab-title">Respuestas</div>
+            <div class="responses-wrapper">
+      <div class="response-item">
+        <span class="status-badge" style="background:#49cc90">200</span>
+        <span class="response-desc">Institución eliminada</span>
+        
+        <table class="param-table schema-table">
+          <thead><tr><th>Campo</th><th>Tipo / Descripción</th></tr></thead>
+          <tbody>
+          <tr><td class="param-name">message</td><td class="param-desc">string</td></tr></tbody>
+        </table>
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#fca130">403</span>
+        <span class="response-desc">Solo admin puede eliminar instituciones</span>
+        
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#fca130">404</span>
+        <span class="response-desc">Institución no encontrada</span>
+        
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#f93e3e">500</span>
+        <span class="response-desc">Error interno del servidor</span>
+        
+      </div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="group-section" id="group-user-class">
+    <h2 class="group-title">/user-class</h2>
+    
+    <div class="endpoint-card" id="ep-19">
+      <div class="endpoint-header" onclick="toggle(19)">
+        <span class="method-badge" style="background:#49cc90;color:#fff">POST</span>
+        <span class="endpoint-path">/user-class</span>
+        <span class="endpoint-desc-inline">Añade un usuario a una clase. Verifica que el usuario y la clase existan y que no esté ya en ella.</span>
+        <div class="endpoint-badges">
+          <span class="role-badge">teacher</span><span class="role-badge">admin</span>
+          <span class="impl-badge impl-yes">implemented</span>
+          <span class="chevron" id="chev-19">▼</span>
+        </div>
+      </div>
+      <div class="endpoint-body" id="body-19" style="display:none">
+        <p class="full-desc">Añade un usuario a una clase. Verifica que el usuario y la clase existan y que no esté ya en ella.</p>
+        <div class="section-tabs">
+          <div class="tab-section">
+            <div class="tab-title">Parámetros</div>
+            <div class="params-wrapper">
+      <div class="param-section">
+        <div class="param-label">Headers</div>
+        <table class="param-table">
+          <thead><tr><th>Campo</th><th>Descripción</th></tr></thead>
+          <tbody>
+      <tr>
+        <td class="param-name">x-session-token</td>
+        <td class="param-desc">string — JWT de sesión</td>
+      </tr></tbody>
+        </table>
+      </div>
+      <div class="param-section">
+        <div class="param-label">Body</div>
+        <table class="param-table">
+          <thead><tr><th>Campo</th><th>Descripción</th></tr></thead>
+          <tbody>
+      <tr>
+        <td class="param-name">user_id</td>
+        <td class="param-desc">string — UUID del usuario</td>
+      </tr>
+      <tr>
+        <td class="param-name">class_id</td>
+        <td class="param-desc">string — UUID de la clase</td>
+      </tr></tbody>
+        </table>
+      </div></div>
+          </div>
+          <div class="tab-section">
+            <div class="tab-title">Respuestas</div>
+            <div class="responses-wrapper">
+      <div class="response-item">
+        <span class="status-badge" style="background:#49cc90">200</span>
+        <span class="response-desc">Usuario añadido a la clase</span>
+        
+        <table class="param-table schema-table">
+          <thead><tr><th>Campo</th><th>Tipo / Descripción</th></tr></thead>
+          <tbody>
+          <tr><td class="param-name">message</td><td class="param-desc">string</td></tr></tbody>
+        </table>
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#fca130">400</span>
+        <span class="response-desc">Faltan user_id o class_id</span>
+        
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#fca130">403</span>
+        <span class="response-desc">El usuario no tiene permisos (rol student)</span>
+        
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#fca130">404</span>
+        <span class="response-desc">Usuario o clase no encontrado</span>
+        
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#fca130">409</span>
+        <span class="response-desc">El usuario ya pertenece a esta clase</span>
+        
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#f93e3e">500</span>
+        <span class="response-desc">Error interno del servidor</span>
+        
+      </div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="endpoint-card" id="ep-20">
+      <div class="endpoint-header" onclick="toggle(20)">
+        <span class="method-badge" style="background:#f93e3e;color:#fff">DELETE</span>
+        <span class="endpoint-path">/user-class</span>
+        <span class="endpoint-desc-inline">Elimina un usuario de una clase.</span>
+        <div class="endpoint-badges">
+          <span class="role-badge">teacher</span><span class="role-badge">admin</span>
+          <span class="impl-badge impl-yes">implemented</span>
+          <span class="chevron" id="chev-20">▼</span>
+        </div>
+      </div>
+      <div class="endpoint-body" id="body-20" style="display:none">
+        <p class="full-desc">Elimina un usuario de una clase.</p>
+        <div class="section-tabs">
+          <div class="tab-section">
+            <div class="tab-title">Parámetros</div>
+            <div class="params-wrapper">
+      <div class="param-section">
+        <div class="param-label">Headers</div>
+        <table class="param-table">
+          <thead><tr><th>Campo</th><th>Descripción</th></tr></thead>
+          <tbody>
+      <tr>
+        <td class="param-name">x-session-token</td>
+        <td class="param-desc">string — JWT de sesión</td>
+      </tr></tbody>
+        </table>
+      </div>
+      <div class="param-section">
+        <div class="param-label">Body</div>
+        <table class="param-table">
+          <thead><tr><th>Campo</th><th>Descripción</th></tr></thead>
+          <tbody>
+      <tr>
+        <td class="param-name">user_id</td>
+        <td class="param-desc">string — UUID del usuario</td>
+      </tr>
+      <tr>
+        <td class="param-name">class_id</td>
+        <td class="param-desc">string — UUID de la clase</td>
+      </tr></tbody>
+        </table>
+      </div></div>
+          </div>
+          <div class="tab-section">
+            <div class="tab-title">Respuestas</div>
+            <div class="responses-wrapper">
+      <div class="response-item">
+        <span class="status-badge" style="background:#49cc90">200</span>
+        <span class="response-desc">Usuario eliminado de la clase</span>
+        
+        <table class="param-table schema-table">
+          <thead><tr><th>Campo</th><th>Tipo / Descripción</th></tr></thead>
+          <tbody>
+          <tr><td class="param-name">message</td><td class="param-desc">string</td></tr></tbody>
+        </table>
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#fca130">400</span>
+        <span class="response-desc">Faltan user_id o class_id</span>
+        
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#fca130">403</span>
+        <span class="response-desc">El usuario no tiene permisos (rol student)</span>
+        
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#fca130">404</span>
+        <span class="response-desc">El usuario no pertenece a esta clase</span>
+        
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#f93e3e">500</span>
+        <span class="response-desc">Error interno del servidor</span>
+        
+      </div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="endpoint-card" id="ep-21">
+      <div class="endpoint-header" onclick="toggle(21)">
+        <span class="method-badge" style="background:#61affe;color:#fff">GET</span>
+        <span class="endpoint-path">/user-class/user/:user_id</span>
+        <span class="endpoint-desc-inline">Devuelve todas las clases a las que pertenece un usuario.</span>
+        <div class="endpoint-badges">
+          
+          <span class="impl-badge impl-yes">implemented</span>
+          <span class="chevron" id="chev-21">▼</span>
+        </div>
+      </div>
+      <div class="endpoint-body" id="body-21" style="display:none">
+        <p class="full-desc">Devuelve todas las clases a las que pertenece un usuario.</p>
+        <div class="section-tabs">
+          <div class="tab-section">
+            <div class="tab-title">Parámetros</div>
+            <div class="params-wrapper">
+      <div class="param-section">
+        <div class="param-label">Headers</div>
+        <table class="param-table">
+          <thead><tr><th>Campo</th><th>Descripción</th></tr></thead>
+          <tbody>
+      <tr>
+        <td class="param-name">x-session-token</td>
+        <td class="param-desc">string — JWT de sesión</td>
+      </tr></tbody>
+        </table>
+      </div>
+      <div class="param-section">
+        <div class="param-label">Path params</div>
+        <table class="param-table">
+          <thead><tr><th>Campo</th><th>Descripción</th></tr></thead>
+          <tbody>
+      <tr>
+        <td class="param-name">user_id</td>
+        <td class="param-desc">string — UUID del usuario</td>
+      </tr></tbody>
+        </table>
+      </div></div>
+          </div>
+          <div class="tab-section">
+            <div class="tab-title">Respuestas</div>
+            <div class="responses-wrapper">
+      <div class="response-item">
+        <span class="status-badge" style="background:#49cc90">200</span>
+        <span class="response-desc">Lista de relaciones user-class</span>
+        
+        <table class="param-table schema-table">
+          <thead><tr><th>Campo</th><th>Tipo / Descripción</th></tr></thead>
+          <tbody>
+          <tr><td class="param-name">data</td><td class="param-desc">UserClass[]</td></tr></tbody>
+        </table>
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#fca130">404</span>
+        <span class="response-desc">Usuario no encontrado</span>
+        
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#f93e3e">500</span>
+        <span class="response-desc">Error interno del servidor</span>
+        
+      </div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="endpoint-card" id="ep-22">
+      <div class="endpoint-header" onclick="toggle(22)">
+        <span class="method-badge" style="background:#61affe;color:#fff">GET</span>
+        <span class="endpoint-path">/user-class/class/:class_id</span>
+        <span class="endpoint-desc-inline">Devuelve todos los usuarios que pertenecen a una clase.</span>
+        <div class="endpoint-badges">
+          
+          <span class="impl-badge impl-yes">implemented</span>
+          <span class="chevron" id="chev-22">▼</span>
+        </div>
+      </div>
+      <div class="endpoint-body" id="body-22" style="display:none">
+        <p class="full-desc">Devuelve todos los usuarios que pertenecen a una clase.</p>
+        <div class="section-tabs">
+          <div class="tab-section">
+            <div class="tab-title">Parámetros</div>
+            <div class="params-wrapper">
+      <div class="param-section">
+        <div class="param-label">Headers</div>
+        <table class="param-table">
+          <thead><tr><th>Campo</th><th>Descripción</th></tr></thead>
+          <tbody>
+      <tr>
+        <td class="param-name">x-session-token</td>
+        <td class="param-desc">string — JWT de sesión</td>
+      </tr></tbody>
+        </table>
+      </div>
+      <div class="param-section">
+        <div class="param-label">Path params</div>
+        <table class="param-table">
+          <thead><tr><th>Campo</th><th>Descripción</th></tr></thead>
+          <tbody>
+      <tr>
+        <td class="param-name">class_id</td>
+        <td class="param-desc">string — UUID de la clase</td>
+      </tr></tbody>
+        </table>
+      </div></div>
+          </div>
+          <div class="tab-section">
+            <div class="tab-title">Respuestas</div>
+            <div class="responses-wrapper">
+      <div class="response-item">
+        <span class="status-badge" style="background:#49cc90">200</span>
+        <span class="response-desc">Lista de relaciones user-class</span>
+        
+        <table class="param-table schema-table">
+          <thead><tr><th>Campo</th><th>Tipo / Descripción</th></tr></thead>
+          <tbody>
+          <tr><td class="param-name">data</td><td class="param-desc">UserClass[]</td></tr></tbody>
+        </table>
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#fca130">404</span>
+        <span class="response-desc">Clase no encontrada</span>
+        
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#f93e3e">500</span>
+        <span class="response-desc">Error interno del servidor</span>
+        
+      </div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="group-section" id="group-enrollment">
+    <h2 class="group-title">/enrollment</h2>
+    
+    <div class="endpoint-card" id="ep-23">
+      <div class="endpoint-header" onclick="toggle(23)">
+        <span class="method-badge" style="background:#49cc90;color:#fff">POST</span>
+        <span class="endpoint-path">/enrollment</span>
+        <span class="endpoint-desc-inline">Matricula un usuario en un desafío. Verifica que el usuario y el desafío existan y que no esté ya matriculado.</span>
+        <div class="endpoint-badges">
+          
+          <span class="impl-badge impl-yes">implemented</span>
+          <span class="chevron" id="chev-23">▼</span>
+        </div>
+      </div>
+      <div class="endpoint-body" id="body-23" style="display:none">
+        <p class="full-desc">Matricula un usuario en un desafío. Verifica que el usuario y el desafío existan y que no esté ya matriculado.</p>
+        <div class="section-tabs">
+          <div class="tab-section">
+            <div class="tab-title">Parámetros</div>
+            <div class="params-wrapper">
+      <div class="param-section">
+        <div class="param-label">Headers</div>
+        <table class="param-table">
+          <thead><tr><th>Campo</th><th>Descripción</th></tr></thead>
+          <tbody>
+      <tr>
+        <td class="param-name">x-session-token</td>
+        <td class="param-desc">string — JWT de sesión</td>
+      </tr></tbody>
+        </table>
+      </div>
+      <div class="param-section">
+        <div class="param-label">Body</div>
+        <table class="param-table">
+          <thead><tr><th>Campo</th><th>Descripción</th></tr></thead>
+          <tbody>
+      <tr>
+        <td class="param-name">user_id</td>
+        <td class="param-desc">string — UUID del usuario</td>
+      </tr>
+      <tr>
+        <td class="param-name">challenge_id</td>
+        <td class="param-desc">string — UUID del desafío</td>
+      </tr></tbody>
+        </table>
+      </div></div>
+          </div>
+          <div class="tab-section">
+            <div class="tab-title">Respuestas</div>
+            <div class="responses-wrapper">
+      <div class="response-item">
+        <span class="status-badge" style="background:#49cc90">200</span>
+        <span class="response-desc">Matriculado correctamente</span>
+        
+        <table class="param-table schema-table">
+          <thead><tr><th>Campo</th><th>Tipo / Descripción</th></tr></thead>
+          <tbody>
+          <tr><td class="param-name">message</td><td class="param-desc">string</td></tr></tbody>
+        </table>
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#fca130">400</span>
+        <span class="response-desc">Faltan user_id o challenge_id</span>
+        
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#fca130">404</span>
+        <span class="response-desc">Usuario o desafío no encontrado</span>
+        
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#fca130">409</span>
+        <span class="response-desc">El usuario ya está matriculado en este desafío</span>
+        
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#f93e3e">500</span>
+        <span class="response-desc">Error interno del servidor</span>
+        
+      </div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="endpoint-card" id="ep-24">
+      <div class="endpoint-header" onclick="toggle(24)">
+        <span class="method-badge" style="background:#f93e3e;color:#fff">DELETE</span>
+        <span class="endpoint-path">/enrollment</span>
+        <span class="endpoint-desc-inline">Desmatricula un usuario de un desafío.</span>
+        <div class="endpoint-badges">
+          
+          <span class="impl-badge impl-yes">implemented</span>
+          <span class="chevron" id="chev-24">▼</span>
+        </div>
+      </div>
+      <div class="endpoint-body" id="body-24" style="display:none">
+        <p class="full-desc">Desmatricula un usuario de un desafío.</p>
+        <div class="section-tabs">
+          <div class="tab-section">
+            <div class="tab-title">Parámetros</div>
+            <div class="params-wrapper">
+      <div class="param-section">
+        <div class="param-label">Headers</div>
+        <table class="param-table">
+          <thead><tr><th>Campo</th><th>Descripción</th></tr></thead>
+          <tbody>
+      <tr>
+        <td class="param-name">x-session-token</td>
+        <td class="param-desc">string — JWT de sesión</td>
+      </tr></tbody>
+        </table>
+      </div>
+      <div class="param-section">
+        <div class="param-label">Body</div>
+        <table class="param-table">
+          <thead><tr><th>Campo</th><th>Descripción</th></tr></thead>
+          <tbody>
+      <tr>
+        <td class="param-name">user_id</td>
+        <td class="param-desc">string — UUID del usuario</td>
+      </tr>
+      <tr>
+        <td class="param-name">challenge_id</td>
+        <td class="param-desc">string — UUID del desafío</td>
+      </tr></tbody>
+        </table>
+      </div></div>
+          </div>
+          <div class="tab-section">
+            <div class="tab-title">Respuestas</div>
+            <div class="responses-wrapper">
+      <div class="response-item">
+        <span class="status-badge" style="background:#49cc90">200</span>
+        <span class="response-desc">Desmatriculado correctamente</span>
+        
+        <table class="param-table schema-table">
+          <thead><tr><th>Campo</th><th>Tipo / Descripción</th></tr></thead>
+          <tbody>
+          <tr><td class="param-name">message</td><td class="param-desc">string</td></tr></tbody>
+        </table>
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#fca130">400</span>
+        <span class="response-desc">Faltan user_id o challenge_id</span>
+        
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#fca130">404</span>
+        <span class="response-desc">Matrícula no encontrada</span>
+        
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#f93e3e">500</span>
+        <span class="response-desc">Error interno del servidor</span>
+        
+      </div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="endpoint-card" id="ep-25">
+      <div class="endpoint-header" onclick="toggle(25)">
+        <span class="method-badge" style="background:#fca130;color:#fff">PATCH</span>
+        <span class="endpoint-path">/enrollment/complete</span>
+        <span class="endpoint-desc-inline">Marca un desafío como completado para un usuario. Solo teacher y admin.</span>
+        <div class="endpoint-badges">
+          <span class="role-badge">teacher</span><span class="role-badge">admin</span>
+          <span class="impl-badge impl-yes">implemented</span>
+          <span class="chevron" id="chev-25">▼</span>
+        </div>
+      </div>
+      <div class="endpoint-body" id="body-25" style="display:none">
+        <p class="full-desc">Marca un desafío como completado para un usuario. Solo teacher y admin.</p>
+        <div class="section-tabs">
+          <div class="tab-section">
+            <div class="tab-title">Parámetros</div>
+            <div class="params-wrapper">
+      <div class="param-section">
+        <div class="param-label">Headers</div>
+        <table class="param-table">
+          <thead><tr><th>Campo</th><th>Descripción</th></tr></thead>
+          <tbody>
+      <tr>
+        <td class="param-name">x-session-token</td>
+        <td class="param-desc">string — JWT de sesión</td>
+      </tr></tbody>
+        </table>
+      </div>
+      <div class="param-section">
+        <div class="param-label">Body</div>
+        <table class="param-table">
+          <thead><tr><th>Campo</th><th>Descripción</th></tr></thead>
+          <tbody>
+      <tr>
+        <td class="param-name">user_id</td>
+        <td class="param-desc">string — UUID del usuario</td>
+      </tr>
+      <tr>
+        <td class="param-name">challenge_id</td>
+        <td class="param-desc">string — UUID del desafío</td>
+      </tr></tbody>
+        </table>
+      </div></div>
+          </div>
+          <div class="tab-section">
+            <div class="tab-title">Respuestas</div>
+            <div class="responses-wrapper">
+      <div class="response-item">
+        <span class="status-badge" style="background:#49cc90">200</span>
+        <span class="response-desc">Desafío marcado como completado</span>
+        
+        <table class="param-table schema-table">
+          <thead><tr><th>Campo</th><th>Tipo / Descripción</th></tr></thead>
+          <tbody>
+          <tr><td class="param-name">message</td><td class="param-desc">string</td></tr></tbody>
+        </table>
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#fca130">400</span>
+        <span class="response-desc">Faltan user_id o challenge_id</span>
+        
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#fca130">403</span>
+        <span class="response-desc">El usuario no tiene permisos (rol student)</span>
+        
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#fca130">404</span>
+        <span class="response-desc">Matrícula no encontrada</span>
+        
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#fca130">409</span>
+        <span class="response-desc">El desafío ya estaba completado</span>
+        
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#f93e3e">500</span>
+        <span class="response-desc">Error interno del servidor</span>
+        
+      </div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="endpoint-card" id="ep-26">
+      <div class="endpoint-header" onclick="toggle(26)">
+        <span class="method-badge" style="background:#61affe;color:#fff">GET</span>
+        <span class="endpoint-path">/enrollment/user/:user_id</span>
+        <span class="endpoint-desc-inline">Devuelve todas las matrículas de un usuario.</span>
+        <div class="endpoint-badges">
+          
+          <span class="impl-badge impl-yes">implemented</span>
+          <span class="chevron" id="chev-26">▼</span>
+        </div>
+      </div>
+      <div class="endpoint-body" id="body-26" style="display:none">
+        <p class="full-desc">Devuelve todas las matrículas de un usuario.</p>
+        <div class="section-tabs">
+          <div class="tab-section">
+            <div class="tab-title">Parámetros</div>
+            <div class="params-wrapper">
+      <div class="param-section">
+        <div class="param-label">Headers</div>
+        <table class="param-table">
+          <thead><tr><th>Campo</th><th>Descripción</th></tr></thead>
+          <tbody>
+      <tr>
+        <td class="param-name">x-session-token</td>
+        <td class="param-desc">string — JWT de sesión</td>
+      </tr></tbody>
+        </table>
+      </div>
+      <div class="param-section">
+        <div class="param-label">Path params</div>
+        <table class="param-table">
+          <thead><tr><th>Campo</th><th>Descripción</th></tr></thead>
+          <tbody>
+      <tr>
+        <td class="param-name">user_id</td>
+        <td class="param-desc">string — UUID del usuario</td>
+      </tr></tbody>
+        </table>
+      </div></div>
+          </div>
+          <div class="tab-section">
+            <div class="tab-title">Respuestas</div>
+            <div class="responses-wrapper">
+      <div class="response-item">
+        <span class="status-badge" style="background:#49cc90">200</span>
+        <span class="response-desc">Lista de matrículas</span>
+        
+        <table class="param-table schema-table">
+          <thead><tr><th>Campo</th><th>Tipo / Descripción</th></tr></thead>
+          <tbody>
+          <tr><td class="param-name">data</td><td class="param-desc">Enrollment[]</td></tr></tbody>
+        </table>
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#fca130">404</span>
+        <span class="response-desc">Usuario no encontrado</span>
+        
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#f93e3e">500</span>
+        <span class="response-desc">Error interno del servidor</span>
+        
+      </div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="endpoint-card" id="ep-27">
+      <div class="endpoint-header" onclick="toggle(27)">
+        <span class="method-badge" style="background:#61affe;color:#fff">GET</span>
+        <span class="endpoint-path">/enrollment/challenge/:challenge_id</span>
+        <span class="endpoint-desc-inline">Devuelve todos los usuarios matriculados en un desafío.</span>
+        <div class="endpoint-badges">
+          
+          <span class="impl-badge impl-yes">implemented</span>
+          <span class="chevron" id="chev-27">▼</span>
+        </div>
+      </div>
+      <div class="endpoint-body" id="body-27" style="display:none">
+        <p class="full-desc">Devuelve todos los usuarios matriculados en un desafío.</p>
+        <div class="section-tabs">
+          <div class="tab-section">
+            <div class="tab-title">Parámetros</div>
+            <div class="params-wrapper">
+      <div class="param-section">
+        <div class="param-label">Headers</div>
+        <table class="param-table">
+          <thead><tr><th>Campo</th><th>Descripción</th></tr></thead>
+          <tbody>
+      <tr>
+        <td class="param-name">x-session-token</td>
+        <td class="param-desc">string — JWT de sesión</td>
+      </tr></tbody>
+        </table>
+      </div>
+      <div class="param-section">
+        <div class="param-label">Path params</div>
+        <table class="param-table">
+          <thead><tr><th>Campo</th><th>Descripción</th></tr></thead>
+          <tbody>
+      <tr>
+        <td class="param-name">challenge_id</td>
+        <td class="param-desc">string — UUID del desafío</td>
+      </tr></tbody>
+        </table>
+      </div></div>
+          </div>
+          <div class="tab-section">
+            <div class="tab-title">Respuestas</div>
+            <div class="responses-wrapper">
+      <div class="response-item">
+        <span class="status-badge" style="background:#49cc90">200</span>
+        <span class="response-desc">Lista de matrículas</span>
+        
+        <table class="param-table schema-table">
+          <thead><tr><th>Campo</th><th>Tipo / Descripción</th></tr></thead>
+          <tbody>
+          <tr><td class="param-name">data</td><td class="param-desc">Enrollment[]</td></tr></tbody>
+        </table>
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#fca130">404</span>
+        <span class="response-desc">Desafío no encontrado</span>
+        
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#f93e3e">500</span>
+        <span class="response-desc">Error interno del servidor</span>
+        
+      </div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="group-section" id="group-challenge">
+    <h2 class="group-title">/challenge</h2>
+    
+    <div class="endpoint-card" id="ep-28">
+      <div class="endpoint-header" onclick="toggle(28)">
+        <span class="method-badge" style="background:#49cc90;color:#fff">POST</span>
+        <span class="endpoint-path">/challenge</span>
+        <span class="endpoint-desc-inline">Crea un nuevo desafío asociado a una clase. Verifica que la clase exista.</span>
+        <div class="endpoint-badges">
+          <span class="role-badge">teacher</span><span class="role-badge">admin</span>
+          <span class="impl-badge impl-yes">implemented</span>
+          <span class="chevron" id="chev-28">▼</span>
+        </div>
+      </div>
+      <div class="endpoint-body" id="body-28" style="display:none">
+        <p class="full-desc">Crea un nuevo desafío asociado a una clase. Verifica que la clase exista.</p>
+        <div class="section-tabs">
+          <div class="tab-section">
+            <div class="tab-title">Parámetros</div>
+            <div class="params-wrapper">
+      <div class="param-section">
+        <div class="param-label">Headers</div>
+        <table class="param-table">
+          <thead><tr><th>Campo</th><th>Descripción</th></tr></thead>
+          <tbody>
+      <tr>
+        <td class="param-name">x-session-token</td>
+        <td class="param-desc">string — JWT de sesión</td>
+      </tr></tbody>
+        </table>
+      </div>
+      <div class="param-section">
+        <div class="param-label">Body</div>
+        <table class="param-table">
+          <thead><tr><th>Campo</th><th>Descripción</th></tr></thead>
+          <tbody>
+      <tr>
+        <td class="param-name">name</td>
+        <td class="param-desc">string — nombre del desafío</td>
+      </tr>
+      <tr>
+        <td class="param-name">class_id</td>
+        <td class="param-desc">string — UUID de la clase a la que pertenece</td>
+      </tr>
+      <tr>
+        <td class="param-name">description</td>
+        <td class="param-desc">string — (opcional) descripción del desafío</td>
+      </tr></tbody>
+        </table>
+      </div></div>
+          </div>
+          <div class="tab-section">
+            <div class="tab-title">Respuestas</div>
+            <div class="responses-wrapper">
+      <div class="response-item">
+        <span class="status-badge" style="background:#49cc90">200</span>
+        <span class="response-desc">Desafío creado</span>
+        
+        <table class="param-table schema-table">
+          <thead><tr><th>Campo</th><th>Tipo / Descripción</th></tr></thead>
+          <tbody>
+          <tr><td class="param-name">id</td><td class="param-desc">string — UUID del desafío creado</td></tr></tbody>
+        </table>
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#fca130">400</span>
+        <span class="response-desc">Faltan name o class_id</span>
+        
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#fca130">403</span>
+        <span class="response-desc">El usuario no tiene permisos (rol student)</span>
+        
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#fca130">404</span>
+        <span class="response-desc">Clase no encontrada</span>
+        
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#f93e3e">500</span>
+        <span class="response-desc">Error interno del servidor</span>
+        
+      </div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="endpoint-card" id="ep-29">
+      <div class="endpoint-header" onclick="toggle(29)">
+        <span class="method-badge" style="background:#61affe;color:#fff">GET</span>
+        <span class="endpoint-path">/challenge/class/:class_id</span>
+        <span class="endpoint-desc-inline">Devuelve todos los desafíos de una clase.</span>
+        <div class="endpoint-badges">
+          
+          <span class="impl-badge impl-yes">implemented</span>
+          <span class="chevron" id="chev-29">▼</span>
+        </div>
+      </div>
+      <div class="endpoint-body" id="body-29" style="display:none">
+        <p class="full-desc">Devuelve todos los desafíos de una clase.</p>
+        <div class="section-tabs">
+          <div class="tab-section">
+            <div class="tab-title">Parámetros</div>
+            <div class="params-wrapper">
+      <div class="param-section">
+        <div class="param-label">Headers</div>
+        <table class="param-table">
+          <thead><tr><th>Campo</th><th>Descripción</th></tr></thead>
+          <tbody>
+      <tr>
+        <td class="param-name">x-session-token</td>
+        <td class="param-desc">string — JWT de sesión</td>
+      </tr></tbody>
+        </table>
+      </div>
+      <div class="param-section">
+        <div class="param-label">Path params</div>
+        <table class="param-table">
+          <thead><tr><th>Campo</th><th>Descripción</th></tr></thead>
+          <tbody>
+      <tr>
+        <td class="param-name">class_id</td>
+        <td class="param-desc">string — UUID de la clase</td>
+      </tr></tbody>
+        </table>
+      </div></div>
+          </div>
+          <div class="tab-section">
+            <div class="tab-title">Respuestas</div>
+            <div class="responses-wrapper">
+      <div class="response-item">
+        <span class="status-badge" style="background:#49cc90">200</span>
+        <span class="response-desc">Lista de desafíos</span>
+        
+        <table class="param-table schema-table">
+          <thead><tr><th>Campo</th><th>Tipo / Descripción</th></tr></thead>
+          <tbody>
+          <tr><td class="param-name">data</td><td class="param-desc">Challenge[]</td></tr></tbody>
+        </table>
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#fca130">404</span>
+        <span class="response-desc">Clase no encontrada</span>
+        
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#f93e3e">500</span>
+        <span class="response-desc">Error interno del servidor</span>
+        
+      </div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="endpoint-card" id="ep-30">
+      <div class="endpoint-header" onclick="toggle(30)">
+        <span class="method-badge" style="background:#61affe;color:#fff">GET</span>
+        <span class="endpoint-path">/challenge/:id</span>
+        <span class="endpoint-desc-inline">Devuelve los datos de un desafío por su UUID.</span>
+        <div class="endpoint-badges">
+          
+          <span class="impl-badge impl-yes">implemented</span>
+          <span class="chevron" id="chev-30">▼</span>
+        </div>
+      </div>
+      <div class="endpoint-body" id="body-30" style="display:none">
+        <p class="full-desc">Devuelve los datos de un desafío por su UUID.</p>
+        <div class="section-tabs">
+          <div class="tab-section">
+            <div class="tab-title">Parámetros</div>
+            <div class="params-wrapper">
+      <div class="param-section">
+        <div class="param-label">Headers</div>
+        <table class="param-table">
+          <thead><tr><th>Campo</th><th>Descripción</th></tr></thead>
+          <tbody>
+      <tr>
+        <td class="param-name">x-session-token</td>
+        <td class="param-desc">string — JWT de sesión</td>
+      </tr></tbody>
+        </table>
+      </div>
+      <div class="param-section">
+        <div class="param-label">Path params</div>
+        <table class="param-table">
+          <thead><tr><th>Campo</th><th>Descripción</th></tr></thead>
+          <tbody>
+      <tr>
+        <td class="param-name">id</td>
+        <td class="param-desc">string — UUID del desafío</td>
+      </tr></tbody>
+        </table>
+      </div></div>
+          </div>
+          <div class="tab-section">
+            <div class="tab-title">Respuestas</div>
+            <div class="responses-wrapper">
+      <div class="response-item">
+        <span class="status-badge" style="background:#49cc90">200</span>
+        <span class="response-desc">Datos del desafío</span>
+        
+        <table class="param-table schema-table">
+          <thead><tr><th>Campo</th><th>Tipo / Descripción</th></tr></thead>
+          <tbody>
+          <tr><td class="param-name">id</td><td class="param-desc">string</td></tr>
+          <tr><td class="param-name">name</td><td class="param-desc">string</td></tr>
+          <tr><td class="param-name">class_id</td><td class="param-desc">string</td></tr>
+          <tr><td class="param-name">description</td><td class="param-desc">string|null</td></tr>
+          <tr><td class="param-name">created_at</td><td class="param-desc">datetime</td></tr>
+          <tr><td class="param-name">updated_at</td><td class="param-desc">datetime</td></tr></tbody>
+        </table>
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#fca130">404</span>
+        <span class="response-desc">Desafío no encontrado</span>
+        
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#f93e3e">500</span>
+        <span class="response-desc">Error interno del servidor</span>
+        
+      </div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="endpoint-card" id="ep-31">
+      <div class="endpoint-header" onclick="toggle(31)">
+        <span class="method-badge" style="background:#fca130;color:#fff">PATCH</span>
+        <span class="endpoint-path">/challenge/:id</span>
+        <span class="endpoint-desc-inline">Actualiza los datos de un desafío. Solo se modifican los campos enviados.</span>
+        <div class="endpoint-badges">
+          <span class="role-badge">teacher</span><span class="role-badge">admin</span>
+          <span class="impl-badge impl-yes">implemented</span>
+          <span class="chevron" id="chev-31">▼</span>
+        </div>
+      </div>
+      <div class="endpoint-body" id="body-31" style="display:none">
+        <p class="full-desc">Actualiza los datos de un desafío. Solo se modifican los campos enviados.</p>
+        <div class="section-tabs">
+          <div class="tab-section">
+            <div class="tab-title">Parámetros</div>
+            <div class="params-wrapper">
+      <div class="param-section">
+        <div class="param-label">Headers</div>
+        <table class="param-table">
+          <thead><tr><th>Campo</th><th>Descripción</th></tr></thead>
+          <tbody>
+      <tr>
+        <td class="param-name">x-session-token</td>
+        <td class="param-desc">string — JWT de sesión</td>
+      </tr></tbody>
+        </table>
+      </div>
+      <div class="param-section">
+        <div class="param-label">Path params</div>
+        <table class="param-table">
+          <thead><tr><th>Campo</th><th>Descripción</th></tr></thead>
+          <tbody>
+      <tr>
+        <td class="param-name">id</td>
+        <td class="param-desc">string — UUID del desafío</td>
+      </tr></tbody>
+        </table>
+      </div>
+      <div class="param-section">
+        <div class="param-label">Body</div>
+        <table class="param-table">
+          <thead><tr><th>Campo</th><th>Descripción</th></tr></thead>
+          <tbody>
+      <tr>
+        <td class="param-name">name</td>
+        <td class="param-desc">string — (opcional) nuevo nombre</td>
+      </tr>
+      <tr>
+        <td class="param-name">description</td>
+        <td class="param-desc">string — (opcional) nueva descripción</td>
+      </tr></tbody>
+        </table>
+      </div></div>
+          </div>
+          <div class="tab-section">
+            <div class="tab-title">Respuestas</div>
+            <div class="responses-wrapper">
+      <div class="response-item">
+        <span class="status-badge" style="background:#49cc90">200</span>
+        <span class="response-desc">Desafío actualizado</span>
+        
+        <table class="param-table schema-table">
+          <thead><tr><th>Campo</th><th>Tipo / Descripción</th></tr></thead>
+          <tbody>
+          <tr><td class="param-name">message</td><td class="param-desc">string</td></tr></tbody>
+        </table>
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#fca130">400</span>
+        <span class="response-desc">Falta id o body vacío</span>
+        
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#fca130">403</span>
+        <span class="response-desc">El usuario no tiene permisos (rol student)</span>
+        
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#fca130">404</span>
+        <span class="response-desc">Desafío no encontrado</span>
+        
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#f93e3e">500</span>
+        <span class="response-desc">Error interno del servidor</span>
+        
+      </div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="endpoint-card" id="ep-32">
+      <div class="endpoint-header" onclick="toggle(32)">
+        <span class="method-badge" style="background:#f93e3e;color:#fff">DELETE</span>
+        <span class="endpoint-path">/challenge/:id</span>
+        <span class="endpoint-desc-inline">Elimina un desafío por su UUID. Elimina en cascada sus enrollments.</span>
+        <div class="endpoint-badges">
+          <span class="role-badge">teacher</span><span class="role-badge">admin</span>
+          <span class="impl-badge impl-yes">implemented</span>
+          <span class="chevron" id="chev-32">▼</span>
+        </div>
+      </div>
+      <div class="endpoint-body" id="body-32" style="display:none">
+        <p class="full-desc">Elimina un desafío por su UUID. Elimina en cascada sus enrollments.</p>
+        <div class="section-tabs">
+          <div class="tab-section">
+            <div class="tab-title">Parámetros</div>
+            <div class="params-wrapper">
+      <div class="param-section">
+        <div class="param-label">Headers</div>
+        <table class="param-table">
+          <thead><tr><th>Campo</th><th>Descripción</th></tr></thead>
+          <tbody>
+      <tr>
+        <td class="param-name">x-session-token</td>
+        <td class="param-desc">string — JWT de sesión</td>
+      </tr></tbody>
+        </table>
+      </div>
+      <div class="param-section">
+        <div class="param-label">Path params</div>
+        <table class="param-table">
+          <thead><tr><th>Campo</th><th>Descripción</th></tr></thead>
+          <tbody>
+      <tr>
+        <td class="param-name">id</td>
+        <td class="param-desc">string — UUID del desafío</td>
+      </tr></tbody>
+        </table>
+      </div></div>
+          </div>
+          <div class="tab-section">
+            <div class="tab-title">Respuestas</div>
+            <div class="responses-wrapper">
+      <div class="response-item">
+        <span class="status-badge" style="background:#49cc90">200</span>
+        <span class="response-desc">Desafío eliminado</span>
+        
+        <table class="param-table schema-table">
+          <thead><tr><th>Campo</th><th>Tipo / Descripción</th></tr></thead>
+          <tbody>
+          <tr><td class="param-name">message</td><td class="param-desc">string</td></tr></tbody>
+        </table>
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#fca130">403</span>
+        <span class="response-desc">El usuario no tiene permisos (rol student)</span>
+        
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#fca130">404</span>
+        <span class="response-desc">Desafío no encontrado</span>
+        
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#f93e3e">500</span>
+        <span class="response-desc">Error interno del servidor</span>
+        
+      </div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="group-section" id="group-stats">
+    <h2 class="group-title">/stats</h2>
+    
+    <div class="endpoint-card" id="ep-33">
+      <div class="endpoint-header" onclick="toggle(33)">
+        <span class="method-badge" style="background:#61affe;color:#fff">GET</span>
+        <span class="endpoint-path">/stats/user/:user_id</span>
+        <span class="endpoint-desc-inline">Devuelve el historial de puntos ganados por un usuario: qué retos completó, cuántos puntos obtuvo en cada uno y cuándo. Accesible por el propio usuario, teacher y admin.</span>
+        <div class="endpoint-badges">
+          
+          <span class="impl-badge impl-yes">implemented</span>
+          <span class="chevron" id="chev-33">▼</span>
+        </div>
+      </div>
+      <div class="endpoint-body" id="body-33" style="display:none">
+        <p class="full-desc">Devuelve el historial de puntos ganados por un usuario: qué retos completó, cuántos puntos obtuvo en cada uno y cuándo. Accesible por el propio usuario, teacher y admin.</p>
+        <div class="section-tabs">
+          <div class="tab-section">
+            <div class="tab-title">Parámetros</div>
+            <div class="params-wrapper">
+      <div class="param-section">
+        <div class="param-label">Headers</div>
+        <table class="param-table">
+          <thead><tr><th>Campo</th><th>Descripción</th></tr></thead>
+          <tbody>
+      <tr>
+        <td class="param-name">x-session-token</td>
+        <td class="param-desc">string — JWT de sesión</td>
+      </tr></tbody>
+        </table>
+      </div>
+      <div class="param-section">
+        <div class="param-label">Path params</div>
+        <table class="param-table">
+          <thead><tr><th>Campo</th><th>Descripción</th></tr></thead>
+          <tbody>
+      <tr>
+        <td class="param-name">user_id</td>
+        <td class="param-desc">string — UUID del usuario</td>
+      </tr></tbody>
+        </table>
+      </div></div>
+          </div>
+          <div class="tab-section">
+            <div class="tab-title">Respuestas</div>
+            <div class="responses-wrapper">
+      <div class="response-item">
+        <span class="status-badge" style="background:#49cc90">200</span>
+        <span class="response-desc">Historial de puntos del usuario</span>
+        
+        <table class="param-table schema-table">
+          <thead><tr><th>Campo</th><th>Tipo / Descripción</th></tr></thead>
+          <tbody>
+          <tr><td class="param-name">total_points</td><td class="param-desc">number — suma acumulada de puntos del usuario</td></tr>
+          <tr><td class="param-name">history</td><td class="param-desc">array — [{ challenge_id, points, earned_at }]</td></tr></tbody>
+        </table>
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#fca130">404</span>
+        <span class="response-desc">Usuario no encontrado</span>
+        
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#f93e3e">500</span>
+        <span class="response-desc">Error interno del servidor</span>
+        
+      </div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="endpoint-card" id="ep-34">
+      <div class="endpoint-header" onclick="toggle(34)">
+        <span class="method-badge" style="background:#61affe;color:#fff">GET</span>
+        <span class="endpoint-path">/stats/challenge/:challenge_id</span>
+        <span class="endpoint-desc-inline">Devuelve qué usuarios han completado un reto concreto y cuántos puntos ganaron. Útil para el teacher para ver el alcance de un reto.</span>
+        <div class="endpoint-badges">
+          <span class="role-badge">teacher</span><span class="role-badge">admin</span>
+          <span class="impl-badge impl-yes">implemented</span>
+          <span class="chevron" id="chev-34">▼</span>
+        </div>
+      </div>
+      <div class="endpoint-body" id="body-34" style="display:none">
+        <p class="full-desc">Devuelve qué usuarios han completado un reto concreto y cuántos puntos ganaron. Útil para el teacher para ver el alcance de un reto.</p>
+        <div class="section-tabs">
+          <div class="tab-section">
+            <div class="tab-title">Parámetros</div>
+            <div class="params-wrapper">
+      <div class="param-section">
+        <div class="param-label">Headers</div>
+        <table class="param-table">
+          <thead><tr><th>Campo</th><th>Descripción</th></tr></thead>
+          <tbody>
+      <tr>
+        <td class="param-name">x-session-token</td>
+        <td class="param-desc">string — JWT de sesión</td>
+      </tr></tbody>
+        </table>
+      </div>
+      <div class="param-section">
+        <div class="param-label">Path params</div>
+        <table class="param-table">
+          <thead><tr><th>Campo</th><th>Descripción</th></tr></thead>
+          <tbody>
+      <tr>
+        <td class="param-name">challenge_id</td>
+        <td class="param-desc">string — UUID del desafío</td>
+      </tr></tbody>
+        </table>
+      </div></div>
+          </div>
+          <div class="tab-section">
+            <div class="tab-title">Respuestas</div>
+            <div class="responses-wrapper">
+      <div class="response-item">
+        <span class="status-badge" style="background:#49cc90">200</span>
+        <span class="response-desc">Usuarios que han completado el reto</span>
+        
+        <table class="param-table schema-table">
+          <thead><tr><th>Campo</th><th>Tipo / Descripción</th></tr></thead>
+          <tbody>
+          <tr><td class="param-name">challenge_id</td><td class="param-desc">string</td></tr>
+          <tr><td class="param-name">total_completions</td><td class="param-desc">number — cuántos usuarios lo han completado</td></tr>
+          <tr><td class="param-name">completions</td><td class="param-desc">array — [{ user_id, points, earned_at }]</td></tr></tbody>
+        </table>
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#fca130">403</span>
+        <span class="response-desc">El usuario no tiene permisos (rol student)</span>
+        
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#fca130">404</span>
+        <span class="response-desc">Desafío no encontrado</span>
+        
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#f93e3e">500</span>
+        <span class="response-desc">Error interno del servidor</span>
+        
+      </div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="endpoint-card" id="ep-35">
+      <div class="endpoint-header" onclick="toggle(35)">
+        <span class="method-badge" style="background:#61affe;color:#fff">GET</span>
+        <span class="endpoint-path">/stats/class/:class_id</span>
+        <span class="endpoint-desc-inline">Devuelve KPIs agregados de una clase para el panel del teacher: alumnos, retos, participación, tasa de completado, puntos otorgados, etc.</span>
+        <div class="endpoint-badges">
+          <span class="role-badge">teacher</span><span class="role-badge">admin</span>
+          <span class="impl-badge impl-yes">implemented</span>
+          <span class="chevron" id="chev-35">▼</span>
+        </div>
+      </div>
+      <div class="endpoint-body" id="body-35" style="display:none">
+        <p class="full-desc">Devuelve KPIs agregados de una clase para el panel del teacher: alumnos, retos, participación, tasa de completado, puntos otorgados, etc.</p>
+        <div class="section-tabs">
+          <div class="tab-section">
+            <div class="tab-title">Parámetros</div>
+            <div class="params-wrapper">
+      <div class="param-section">
+        <div class="param-label">Headers</div>
+        <table class="param-table">
+          <thead><tr><th>Campo</th><th>Descripción</th></tr></thead>
+          <tbody>
+      <tr>
+        <td class="param-name">x-session-token</td>
+        <td class="param-desc">string — JWT de sesión</td>
+      </tr></tbody>
+        </table>
+      </div>
+      <div class="param-section">
+        <div class="param-label">Path params</div>
+        <table class="param-table">
+          <thead><tr><th>Campo</th><th>Descripción</th></tr></thead>
+          <tbody>
+      <tr>
+        <td class="param-name">class_id</td>
+        <td class="param-desc">string — UUID de la clase</td>
+      </tr></tbody>
+        </table>
+      </div></div>
+          </div>
+          <div class="tab-section">
+            <div class="tab-title">Respuestas</div>
+            <div class="responses-wrapper">
+      <div class="response-item">
+        <span class="status-badge" style="background:#49cc90">200</span>
+        <span class="response-desc">KPIs de la clase</span>
+        
+        <table class="param-table schema-table">
+          <thead><tr><th>Campo</th><th>Tipo / Descripción</th></tr></thead>
+          <tbody>
+          <tr><td class="param-name">class_id</td><td class="param-desc">string</td></tr>
+          <tr><td class="param-name">total_students</td><td class="param-desc">number — alumnos inscritos en la clase</td></tr>
+          <tr><td class="param-name">total_challenges</td><td class="param-desc">number — desafíos disponibles en la clase</td></tr>
+          <tr><td class="param-name">total_enrollments</td><td class="param-desc">number — matrículas totales en los retos de la clase</td></tr>
+          <tr><td class="param-name">completed_enrollments</td><td class="param-desc">number — matrículas completadas</td></tr>
+          <tr><td class="param-name">completion_rate</td><td class="param-desc">number — % de matrículas completadas sobre el total</td></tr>
+          <tr><td class="param-name">participation_rate</td><td class="param-desc">number — % de alumnos con al menos una matrícula sobre el total de alumnos</td></tr>
+          <tr><td class="param-name">total_points_awarded</td><td class="param-desc">number — suma total de puntos otorgados en la clase</td></tr></tbody>
+        </table>
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#fca130">403</span>
+        <span class="response-desc">El usuario no tiene permisos (rol student)</span>
+        
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#fca130">404</span>
+        <span class="response-desc">Clase no encontrada</span>
+        
+      </div>
+      <div class="response-item">
+        <span class="status-badge" style="background:#f93e3e">500</span>
+        <span class="response-desc">Error interno del servidor</span>
+        
+      </div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  </main>
+
+  <script>
+    function toggle(i) {
+      const body = document.getElementById('body-' + i);
+      const chev = document.getElementById('chev-' + i);
+      const open = body.style.display !== 'none';
+      body.style.display = open ? 'none' : 'block';
+      chev.classList.toggle('open', !open);
+    }
+  </script>
+</body>
+</html>

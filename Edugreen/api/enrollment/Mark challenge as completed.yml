@@ -1,0 +1,36 @@
+info:
+  name: Mark challenge as completed
+  type: http
+  seq: 3
+
+http:
+  method: PATCH
+  url: "{{API_DOMAIN}}:{{API_PORT}}/api/enrollment/complete"
+  body:
+    type: json
+    data: |-
+      {
+        "user_id": "{{USER_ID}}",
+        "challenge_id": "{{CHALLENGE_ID}}"
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test(`Response with expected status`, () => {
+          expect(res.getStatus()).to.be.equal(200);
+        });
+
+        test(`Successfully completed challenge`, () => {
+          expect(res.getBody().error).to.be.equal("");
+          expect(res.getBody().data).have.property("message");
+          expect(res.getBody().data.message).to.be.equal("Challenge marked as completed");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

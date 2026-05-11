@@ -1,0 +1,34 @@
+info:
+  name: Update institution info
+  type: http
+  seq: 4
+
+http:
+  method: PATCH
+  url: "{{API_URL}}/institution/{{INSTITUTION_ID}}"
+  body:
+    type: json
+    data: |-
+      {
+        "student_domain": "alu2.ua.es"
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test(`Response with expected status`, () => {
+          expect(res.getStatus()).to.be.equal(200);
+        });
+
+        test(`Successfully updated info`, () => {
+          expect(res.getBody()).have.property("data");
+          expect(res.getBody().data).not.be.equals({});
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

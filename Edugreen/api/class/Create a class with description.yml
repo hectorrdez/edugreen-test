@@ -1,0 +1,37 @@
+info:
+  name: Create a class with description
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: "{{API_DOMAIN}}:{{API_PORT}}/api/class"
+  body:
+    type: json
+    data: |-
+      {
+        "name": "class_test_with_description",
+        "description": "test_description",
+        "tutor_id": "{{USER_ID}}"
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test(`Response with expected status`, () => {
+          expect(res.getStatus()).to.be.equal(200);
+        });
+
+
+        test(`Successfully created class with description`, ()=>{
+          expect(res.getBody().data).have.property("id");
+          bru.setEnvVar("CLASS_ID", res.getBody().data.id);
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

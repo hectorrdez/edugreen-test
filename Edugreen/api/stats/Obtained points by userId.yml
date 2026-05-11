@@ -1,0 +1,28 @@
+info:
+  name: Obtained points by userId
+  type: http
+  seq: 1
+
+http:
+  method: GET
+  url: "{{API_URL}}/stats/user/2"
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test(`Response with expected status 200`, () => {
+          expect(res.getStatus()).to.be.equal(200);
+        });
+
+        test(`Response with expected data`, () => {
+          expect(res.getBody()).to.have.property("data");
+          expect(res.getBody().data).not.to.be.equals({});
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

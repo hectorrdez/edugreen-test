@@ -1,0 +1,33 @@
+name: Dev
+color: "#2E8A54"
+variables:
+  - name: JENKINS_DOMAIN
+    value: http://192.168.50.200:5001
+  - secret: true
+    name: API_KEY
+  - name: API_PORT
+    value: "3001"
+  - name: API_DOMAIN
+    value: http://localhost
+  - secret: true
+    name: USER_PASSWORD_TOKEN
+  - secret: true
+    name: USER_REFRESH_TOKEN
+  - secret: true
+    name: USER_SESSION_TOKEN
+  - name: USER_ID
+    value: edde36a8-3a25-43b5-96d6-597195c4caef
+  - name: CLASS_ID
+    value: b6daba3d-e287-41a3-aab9-65f88bd05f3f
+  - name: CHALLENGE_ID
+    value: 37419cbb-947f-4eb8-bb0c-50c15202a869
+  - name: API_URL
+    value: "{{API_DOMAIN}}:{{API_PORT}}/api"
+  - name: USER_SESSION_MAX_TIME_MS
+    value: "300000"
+  - name: USER_SESSION_INIT_TIME
+    value: ""
+  - name: TEACHER_USER_ID
+    value: ""
+  - name: USER_REFRESH_MAX_TIME_MS
+    value: "604800000"

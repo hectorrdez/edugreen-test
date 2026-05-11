@@ -1,0 +1,36 @@
+info:
+  name: Unenroll user
+  type: http
+  seq: 2
+
+http:
+  method: DELETE
+  url: "{{API_DOMAIN}}:{{API_PORT}}/api/enrollment"
+  body:
+    type: json
+    data: |-
+      {
+        "challenge_id": "{{CHALLENGE_ID}}",
+        "user_id": "{{USER_ID}}"
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test(`Response with expected status`, () => {
+          expect(res.getStatus()).to.be.equal(200);
+        });
+
+        test(`Successfully unrolled user`, () => {
+          expect(res.getBody().error).to.be.equal("");
+          expect(res.getBody().data).have.property("message");
+          expect(res.getBody().data.message).to.be.equal("Unenrolled successfully");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

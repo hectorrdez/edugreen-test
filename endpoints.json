@@ -1,0 +1,1010 @@
+{
+  "api": {
+    "description": "Edugreen API Gateway",
+    "version": "1.0.0",
+    "global_middleware": {
+      "name": "ApiKeyMiddleware",
+      "description": "Aplicado a todos los endpoints. Valida que el header Authorization coincida con la variable de entorno API_KEY.",
+      "header_required": {
+        "Authorization": "string — valor igual a API_KEY del entorno"
+      },
+      "errors": {
+        "401": "No se envió el header Authorization",
+        "403": "El valor de Authorization no coincide con API_KEY"
+      }
+    }
+  },
+  "endpoints": [
+    {
+      "path": "/health",
+      "method": "GET",
+      "controller": "HealthController",
+      "action": "get",
+      "description": "Comprueba que la API está online y devuelve información básica del servicio.",
+      "implemented": true,
+      "auth_required": true,
+      "parameters": {
+        "headers": {},
+        "params": {},
+        "query": {},
+        "body": {}
+      },
+      "responses": {
+        "200": {
+          "description": "API operativa",
+          "schema": {
+            "name": "string — nombre del servicio ('api-gateway')",
+            "url": "string — URL local del servidor",
+            "online": "boolean — siempre true si responde"
+          }
+        },
+        "500": {
+          "description": "Error interno del servidor"
+        }
+      }
+    },
+    {
+      "path": "/auth",
+      "method": "POST",
+      "controller": "AuthController",
+      "action": "createUser",
+      "description": "Registra un nuevo usuario. Hashea la contraseña y devuelve un accessToken (1h) y un refreshToken (7d).",
+      "implemented": true,
+      "auth_required": true,
+      "parameters": {
+        "headers": {},
+        "params": {},
+        "query": {},
+        "body": {
+          "name": "string — nombre del usuario",
+          "lastName": "string — apellido del usuario",
+          "email": "string — email único",
+          "password": "string — contraseña en texto plano (se hashea con bcrypt)"
+        }
+      },
+      "responses": {
+        "200": {
+          "description": "Usuario creado correctamente",
+          "schema": {
+            "id": "string — UUID del usuario recién creado",
+            "role": "string — rol asignado: 'student' | 'teacher' | 'admin'",
+            "sessionToken": "string — JWT con payload {id, name, lastName, email, role}, expira en 1h",
+            "refreshToken": "string — JWT con payload {id}, expira en 7d"
+          }
+        },
+        "400": {
+          "description": "Faltan campos obligatorios en el body"
+        },
+        "409": {
+          "description": "El email ya está en uso"
+        },
+        "500": {
+          "description": "Error interno del servidor"
+        }
+      }
+    },
+    {
+      "path": "/auth",
+      "method": "PATCH",
+      "controller": "AuthController",
+      "action": "forgotPassword",
+      "description": "Solicita un token de recuperación de contraseña para el email indicado. El token JWT tiene una validez de 5 minutos.",
+      "implemented": true,
+      "auth_required": true,
+      "parameters": {
+        "headers": {},
+        "params": {},
+        "query": {},
+        "body": {
+          "email": "string — email del usuario que quiere recuperar contraseña"
+        }
+      },
+      "responses": {
+        "200": {
+          "description": "Token de recuperación generado",
+          "schema": {
+            "token": "string — JWT con payload {id, email}, expira en 5min"
+          }
+        },
+        "400": {
+          "description": "Falta el campo email"
+        },
+        "404": {
+          "description": "No existe ningún usuario con ese email"
+        },
+        "500": {
+          "description": "Error interno del servidor"
+        }
+      }
+    },
+    {
+      "path": "/auth/login",
+      "method": "POST",
+      "controller": "AuthController",
+      "action": "login",
+      "description": "Autentica un usuario con email y contraseña. Si son correctos devuelve un accessToken (1h) y un refreshToken (7d).",
+      "implemented": true,
+      "auth_required": true,
+      "parameters": {
+        "headers": {},
+        "params": {},
+        "query": {},
+        "body": {
+          "email": "string — email del usuario",
+          "password": "string — contraseña en texto plano"
+        }
+      },
+      "responses": {
+        "200": {
+          "description": "Login correcto",
+          "schema": {
+            "id": "string — UUID del usuario",
+            "role": "string — rol del usuario: 'student' | 'teacher' | 'admin'",
+            "sessionToken": "string — JWT con payload {id, name, lastName, email, role}, expira en 1h",
+            "refreshToken": "string — JWT con payload {id}, expira en 7d"
+          }
+        },
+        "400": {
+          "description": "Faltan email o password"
+        },
+        "401": {
+          "description": "Contraseña incorrecta"
+        },
+        "404": {
+          "description": "No existe ningún usuario con ese email"
+        },
+        "500": {
+          "description": "Error interno del servidor"
+        }
+      }
+    },
+    {
+      "path": "/auth/refresh",
+      "method": "POST",
+      "controller": "AuthController",
+      "action": "refreshSession",
+      "description": "Genera un nuevo accessToken a partir de un refreshToken válido. Usar cuando el accessToken haya expirado.",
+      "implemented": true,
+      "auth_required": true,
+      "parameters": {
+        "headers": {},
+        "params": {},
+        "query": {},
+        "body": {
+          "refreshToken": "string — JWT de refresco obtenido en POST /auth (válido 7d)"
+        }
+      },
+      "responses": {
+        "200": {
+          "description": "Nuevo sessionToken generado",
+          "schema": {
+            "sessionToken": "string — JWT con payload {id, name, lastName, email, role}, expira en 1h"
+          }
+        },
+        "400": {
+          "description": "Falta el campo refreshToken"
+        },
+        "401": {
+          "description": "refreshToken inválido o expirado"
+        },
+        "404": {
+          "description": "Usuario no encontrado"
+        },
+        "500": {
+          "description": "Error interno del servidor"
+        }
+      }
+    },
+    {
+      "path": "/auth/:token",
+      "method": "PATCH",
+      "controller": "AuthController",
+      "action": "changePassword",
+      "description": "Cambia la contraseña del usuario usando el token de recuperación obtenido en PATCH /auth. El token se verifica y se extrae el email del payload.",
+      "implemented": true,
+      "auth_required": true,
+      "parameters": {
+        "headers": {},
+        "params": {
+          "token": "string — JWT de recuperación obtenido en PATCH /auth (válido 5min)"
+        },
+        "query": {},
+        "body": {
+          "password": "string — nueva contraseña en texto plano (se hashea con bcrypt)"
+        }
+      },
+      "responses": {
+        "200": {
+          "description": "Contraseña actualizada correctamente",
+          "schema": {
+            "message": "string — 'Password updated successfully'"
+          }
+        },
+        "400": {
+          "description": "Falta el token en la ruta o la nueva contraseña en el body"
+        },
+        "401": {
+          "description": "Token inválido o expirado"
+        },
+        "404": {
+          "description": "Usuario no encontrado"
+        },
+        "500": {
+          "description": "Error interno del servidor"
+        }
+      }
+    },
+    {
+      "path": "/user",
+      "method": "GET",
+      "controller": "UserController",
+      "action": "checkUserExists",
+      "description": "Comprueba si existe un usuario con el email indicado. Devuelve un booleano, sin exponer datos del usuario.",
+      "implemented": true,
+      "auth_required": true,
+      "parameters": {
+        "headers": {},
+        "params": {},
+        "query": {
+          "email": "string — email a comprobar"
+        },
+        "body": {}
+      },
+      "responses": {
+        "200": {
+          "description": "Consulta resuelta",
+          "schema": {
+            "exists": "boolean — true si el email está registrado, false si no"
+          }
+        },
+        "400": {
+          "description": "Falta el query param email"
+        },
+        "500": {
+          "description": "Error interno del servidor"
+        }
+      }
+    },
+    {
+      "path": "/user/:id",
+      "method": "GET",
+      "controller": "UserController",
+      "action": "getOne",
+      "description": "Devuelve los datos de un usuario por su UUID.",
+      "implemented": true,
+      "auth_required": true,
+      "parameters": {
+        "headers": {},
+        "params": {
+          "id": "string — UUID del usuario"
+        },
+        "query": {},
+        "body": {}
+      },
+      "responses": {
+        "200": {
+          "description": "Datos del usuario",
+          "schema": {
+            "id": "string — UUID",
+            "name": "string",
+            "lastName": "string",
+            "email": "string",
+            "role": "string — 'student' | 'teacher' | 'admin'",
+            "institution_id": "string | null — UUID de la institución",
+            "created_at": "datetime | null",
+            "updated_at": "datetime | null",
+            "last_login_at": "datetime | null"
+          }
+        },
+        "400": {
+          "description": "Falta el parámetro id"
+        },
+        "404": {
+          "description": "Usuario no encontrado"
+        },
+        "500": {
+          "description": "Error interno del servidor"
+        }
+      }
+    },
+    {
+      "path": "/user/:id",
+      "method": "PATCH",
+      "controller": "UserController",
+      "action": "updateOne",
+      "description": "Actualiza los datos de un usuario. Solo se modifican los campos enviados en el body.",
+      "implemented": true,
+      "auth_required": true,
+      "parameters": {
+        "headers": {},
+        "params": {
+          "id": "string — UUID del usuario"
+        },
+        "query": {},
+        "body": {
+          "name": "string — (opcional) nuevo nombre",
+          "lastName": "string — (opcional) nuevo apellido",
+          "email": "string — (opcional) nuevo email, debe ser único"
+        }
+      },
+      "responses": {
+        "200": {
+          "description": "Usuario actualizado correctamente",
+          "schema": {
+            "message": "string — 'User updated successfully'"
+          }
+        },
+        "400": {
+          "description": "Falta el parámetro id o el body está vacío"
+        },
+        "404": {
+          "description": "Usuario no encontrado"
+        },
+        "409": {
+          "description": "El email ya está en uso por otro usuario"
+        },
+        "500": {
+          "description": "Error interno del servidor"
+        }
+      }
+    },
+    {
+      "path": "/user/:id",
+      "method": "DELETE",
+      "controller": "UserController",
+      "action": "deleteOne",
+      "description": "Elimina un usuario por su UUID.",
+      "implemented": true,
+      "auth_required": true,
+      "parameters": {
+        "headers": {},
+        "params": {
+          "id": "string — UUID del usuario"
+        },
+        "query": {},
+        "body": {}
+      },
+      "responses": {
+        "200": {
+          "description": "Usuario eliminado correctamente",
+          "schema": {
+            "message": "string — 'User deleted successfully'"
+          }
+        },
+        "400": {
+          "description": "Falta el parámetro id"
+        },
+        "404": {
+          "description": "Usuario no encontrado"
+        },
+        "500": {
+          "description": "Error interno del servidor"
+        }
+      }
+    },
+    {
+      "path": "/user/:id/challenges",
+      "method": "GET",
+      "controller": "UserController",
+      "action": "getChallenges",
+      "description": "Devuelve el historial de retos del usuario: todos los desafíos en los que está inscrito, con detalles del reto, estado (completed | in_progress) y fechas.",
+      "implemented": true,
+      "auth_required": true,
+      "parameters": {
+        "headers": { "x-session-token": "string — JWT de sesión" },
+        "params": { "id": "string — UUID del usuario" },
+        "query": {},
+        "body": {}
+      },
+      "responses": {
+        "200": {
+          "description": "Lista de retos del usuario",
+          "schema": {
+            "data": "array — [{ challenge_id, challenge_name, description, points, class_id, enrolled_at, completed_at, status: 'completed' | 'in_progress' }]"
+          }
+        },
+        "400": { "description": "Falta el parámetro id" },
+        "404": { "description": "Usuario no encontrado" },
+        "500": { "description": "Error interno del servidor" }
+      }
+    },
+    {
+      "path": "/class",
+      "method": "POST",
+      "controller": "ClassController",
+      "action": "create",
+      "description": "Crea una nueva clase asignada a un tutor.",
+      "implemented": true,
+      "auth_required": true,
+      "roles_required": ["teacher", "admin"],
+      "parameters": {
+        "headers": { "x-session-token": "string — JWT de sesión" },
+        "params": {},
+        "query": {},
+        "body": {
+          "name": "string — nombre de la clase",
+          "tutor_id": "string — UUID del usuario tutor",
+          "description": "string — (opcional) descripción de la clase"
+        }
+      },
+      "responses": {
+        "200": { "description": "Clase creada", "schema": { "id": "string — UUID de la clase creada" } },
+        "400": { "description": "Faltan name o tutor_id" },
+        "403": { "description": "El usuario no tiene permisos (rol student)" },
+        "500": { "description": "Error interno del servidor" }
+      }
+    },
+    {
+      "path": "/class/:id",
+      "method": "GET",
+      "controller": "ClassController",
+      "action": "getOne",
+      "description": "Devuelve los datos de una clase por su UUID.",
+      "implemented": true,
+      "auth_required": true,
+      "parameters": {
+        "headers": { "x-session-token": "string — JWT de sesión" },
+        "params": { "id": "string — UUID de la clase" },
+        "query": {},
+        "body": {}
+      },
+      "responses": {
+        "200": { "description": "Datos de la clase", "schema": { "id": "string", "name": "string", "tutor_id": "string", "description": "string|null", "created_at": "datetime", "updated_at": "datetime" } },
+        "404": { "description": "Clase no encontrada" },
+        "500": { "description": "Error interno del servidor" }
+      }
+    },
+    {
+      "path": "/class/:id",
+      "method": "PATCH",
+      "controller": "ClassController",
+      "action": "updateOne",
+      "description": "Actualiza los datos de una clase. Solo se modifican los campos enviados.",
+      "implemented": true,
+      "auth_required": true,
+      "parameters": {
+        "headers": { "x-session-token": "string — JWT de sesión" },
+        "params": { "id": "string — UUID de la clase" },
+        "query": {},
+        "body": {
+          "name": "string — (opcional) nuevo nombre",
+          "description": "string — (opcional) nueva descripción"
+        }
+      },
+      "responses": {
+        "200": { "description": "Clase actualizada", "schema": { "message": "string" } },
+        "400": { "description": "Falta id o body vacío" },
+        "404": { "description": "Clase no encontrada" },
+        "500": { "description": "Error interno del servidor" }
+      }
+    },
+    {
+      "path": "/class/:id",
+      "method": "DELETE",
+      "controller": "ClassController",
+      "action": "deleteOne",
+      "description": "Elimina una clase por su UUID. Elimina en cascada sus challenges y matrículas.",
+      "implemented": true,
+      "auth_required": true,
+      "parameters": {
+        "headers": { "x-session-token": "string — JWT de sesión" },
+        "params": { "id": "string — UUID de la clase" },
+        "query": {},
+        "body": {}
+      },
+      "responses": {
+        "200": { "description": "Clase eliminada", "schema": { "message": "string" } },
+        "404": { "description": "Clase no encontrada" },
+        "500": { "description": "Error interno del servidor" }
+      }
+    },
+    {
+      "path": "/institution",
+      "method": "POST",
+      "controller": "InstitutionController",
+      "action": "create",
+      "description": "Crea una nueva institución educativa con sus dominios de alumno y profesor.",
+      "implemented": true,
+      "auth_required": true,
+      "roles_required": ["admin"],
+      "parameters": {
+        "headers": { "x-session-token": "string — JWT de sesión" },
+        "params": {},
+        "query": {},
+        "body": {
+          "name": "string — nombre de la institución",
+          "student_domain": "string — dominio de email para alumnos",
+          "teacher_domain": "string — dominio de email para profesores"
+        }
+      },
+      "responses": {
+        "200": { "description": "Institución creada", "schema": { "id": "string — UUID de la institución" } },
+        "400": { "description": "Faltan campos obligatorios" },
+        "403": { "description": "Solo admin puede crear instituciones" },
+        "500": { "description": "Error interno del servidor" }
+      }
+    },
+    {
+      "path": "/institution/:id",
+      "method": "GET",
+      "controller": "InstitutionController",
+      "action": "getOne",
+      "description": "Devuelve los datos de una institución por su UUID.",
+      "implemented": true,
+      "auth_required": true,
+      "parameters": {
+        "headers": { "x-session-token": "string — JWT de sesión" },
+        "params": { "id": "string — UUID de la institución" },
+        "query": {},
+        "body": {}
+      },
+      "responses": {
+        "200": { "description": "Datos de la institución", "schema": { "id": "string", "name": "string", "student_domain": "string", "teacher_domain": "string", "created_at": "datetime" } },
+        "404": { "description": "Institución no encontrada" },
+        "500": { "description": "Error interno del servidor" }
+      }
+    },
+    {
+      "path": "/institution/:id",
+      "method": "PATCH",
+      "controller": "InstitutionController",
+      "action": "updateOne",
+      "description": "Actualiza los datos de una institución. Solo se modifican los campos enviados.",
+      "implemented": true,
+      "auth_required": true,
+      "roles_required": ["admin"],
+      "parameters": {
+        "headers": { "x-session-token": "string — JWT de sesión" },
+        "params": { "id": "string — UUID de la institución" },
+        "query": {},
+        "body": {
+          "name": "string — (opcional) nuevo nombre",
+          "student_domain": "string — (opcional) nuevo dominio de alumnos",
+          "teacher_domain": "string — (opcional) nuevo dominio de profesores"
+        }
+      },
+      "responses": {
+        "200": { "description": "Institución actualizada", "schema": { "message": "string" } },
+        "400": { "description": "Falta id o body vacío" },
+        "403": { "description": "Solo admin puede modificar instituciones" },
+        "404": { "description": "Institución no encontrada" },
+        "500": { "description": "Error interno del servidor" }
+      }
+    },
+    {
+      "path": "/institution/:id",
+      "method": "DELETE",
+      "controller": "InstitutionController",
+      "action": "deleteOne",
+      "description": "Elimina una institución. Los usuarios de esa institución quedan con institution_id a null.",
+      "implemented": true,
+      "auth_required": true,
+      "roles_required": ["admin"],
+      "parameters": {
+        "headers": { "x-session-token": "string — JWT de sesión" },
+        "params": { "id": "string — UUID de la institución" },
+        "query": {},
+        "body": {}
+      },
+      "responses": {
+        "200": { "description": "Institución eliminada", "schema": { "message": "string" } },
+        "403": { "description": "Solo admin puede eliminar instituciones" },
+        "404": { "description": "Institución no encontrada" },
+        "500": { "description": "Error interno del servidor" }
+      }
+    },
+    {
+      "path": "/user-class",
+      "method": "POST",
+      "controller": "UserClassController",
+      "action": "addUserToClass",
+      "description": "Añade un usuario a una clase. Verifica que el usuario y la clase existan y que no esté ya en ella.",
+      "implemented": true,
+      "auth_required": true,
+      "roles_required": ["teacher", "admin"],
+      "parameters": {
+        "headers": { "x-session-token": "string — JWT de sesión" },
+        "params": {},
+        "query": {},
+        "body": {
+          "user_id": "string — UUID del usuario",
+          "class_id": "string — UUID de la clase"
+        }
+      },
+      "responses": {
+        "200": { "description": "Usuario añadido a la clase", "schema": { "message": "string" } },
+        "400": { "description": "Faltan user_id o class_id" },
+        "403": { "description": "El usuario no tiene permisos (rol student)" },
+        "404": { "description": "Usuario o clase no encontrado" },
+        "409": { "description": "El usuario ya pertenece a esta clase" },
+        "500": { "description": "Error interno del servidor" }
+      }
+    },
+    {
+      "path": "/user-class",
+      "method": "DELETE",
+      "controller": "UserClassController",
+      "action": "removeUserFromClass",
+      "description": "Elimina un usuario de una clase.",
+      "implemented": true,
+      "auth_required": true,
+      "roles_required": ["teacher", "admin"],
+      "parameters": {
+        "headers": { "x-session-token": "string — JWT de sesión" },
+        "params": {},
+        "query": {},
+        "body": {
+          "user_id": "string — UUID del usuario",
+          "class_id": "string — UUID de la clase"
+        }
+      },
+      "responses": {
+        "200": { "description": "Usuario eliminado de la clase", "schema": { "message": "string" } },
+        "400": { "description": "Faltan user_id o class_id" },
+        "403": { "description": "El usuario no tiene permisos (rol student)" },
+        "404": { "description": "El usuario no pertenece a esta clase" },
+        "500": { "description": "Error interno del servidor" }
+      }
+    },
+    {
+      "path": "/user-class/user/:user_id",
+      "method": "GET",
+      "controller": "UserClassController",
+      "action": "getClassesByUser",
+      "description": "Devuelve todas las clases a las que pertenece un usuario.",
+      "implemented": true,
+      "auth_required": true,
+      "parameters": {
+        "headers": { "x-session-token": "string — JWT de sesión" },
+        "params": { "user_id": "string — UUID del usuario" },
+        "query": {},
+        "body": {}
+      },
+      "responses": {
+        "200": { "description": "Lista de relaciones user-class", "schema": { "data": "UserClass[]" } },
+        "404": { "description": "Usuario no encontrado" },
+        "500": { "description": "Error interno del servidor" }
+      }
+    },
+    {
+      "path": "/user-class/class/:class_id",
+      "method": "GET",
+      "controller": "UserClassController",
+      "action": "getUsersByClass",
+      "description": "Devuelve todos los usuarios que pertenecen a una clase.",
+      "implemented": true,
+      "auth_required": true,
+      "parameters": {
+        "headers": { "x-session-token": "string — JWT de sesión" },
+        "params": { "class_id": "string — UUID de la clase" },
+        "query": {},
+        "body": {}
+      },
+      "responses": {
+        "200": { "description": "Lista de relaciones user-class", "schema": { "data": "UserClass[]" } },
+        "404": { "description": "Clase no encontrada" },
+        "500": { "description": "Error interno del servidor" }
+      }
+    },
+    {
+      "path": "/enrollment",
+      "method": "POST",
+      "controller": "EnrollmentController",
+      "action": "enroll",
+      "description": "Matricula un usuario en un desafío. Verifica que el usuario y el desafío existan y que no esté ya matriculado.",
+      "implemented": true,
+      "auth_required": true,
+      "parameters": {
+        "headers": { "x-session-token": "string — JWT de sesión" },
+        "params": {},
+        "query": {},
+        "body": {
+          "user_id": "string — UUID del usuario",
+          "challenge_id": "string — UUID del desafío"
+        }
+      },
+      "responses": {
+        "200": { "description": "Matriculado correctamente", "schema": { "message": "string" } },
+        "400": { "description": "Faltan user_id o challenge_id" },
+        "404": { "description": "Usuario o desafío no encontrado" },
+        "409": { "description": "El usuario ya está matriculado en este desafío" },
+        "500": { "description": "Error interno del servidor" }
+      }
+    },
+    {
+      "path": "/enrollment",
+      "method": "DELETE",
+      "controller": "EnrollmentController",
+      "action": "unenroll",
+      "description": "Desmatricula un usuario de un desafío.",
+      "implemented": true,
+      "auth_required": true,
+      "parameters": {
+        "headers": { "x-session-token": "string — JWT de sesión" },
+        "params": {},
+        "query": {},
+        "body": {
+          "user_id": "string — UUID del usuario",
+          "challenge_id": "string — UUID del desafío"
+        }
+      },
+      "responses": {
+        "200": { "description": "Desmatriculado correctamente", "schema": { "message": "string" } },
+        "400": { "description": "Faltan user_id o challenge_id" },
+        "404": { "description": "Matrícula no encontrada" },
+        "500": { "description": "Error interno del servidor" }
+      }
+    },
+    {
+      "path": "/enrollment/complete",
+      "method": "PATCH",
+      "controller": "EnrollmentController",
+      "action": "complete",
+      "description": "Marca un desafío como completado para un usuario. Solo teacher y admin.",
+      "implemented": true,
+      "auth_required": true,
+      "roles_required": ["teacher", "admin"],
+      "parameters": {
+        "headers": { "x-session-token": "string — JWT de sesión" },
+        "params": {},
+        "query": {},
+        "body": {
+          "user_id": "string — UUID del usuario",
+          "challenge_id": "string — UUID del desafío"
+        }
+      },
+      "responses": {
+        "200": { "description": "Desafío marcado como completado", "schema": { "message": "string" } },
+        "400": { "description": "Faltan user_id o challenge_id" },
+        "403": { "description": "El usuario no tiene permisos (rol student)" },
+        "404": { "description": "Matrícula no encontrada" },
+        "409": { "description": "El desafío ya estaba completado" },
+        "500": { "description": "Error interno del servidor" }
+      }
+    },
+    {
+      "path": "/enrollment/user/:user_id",
+      "method": "GET",
+      "controller": "EnrollmentController",
+      "action": "getByUser",
+      "description": "Devuelve todas las matrículas de un usuario.",
+      "implemented": true,
+      "auth_required": true,
+      "parameters": {
+        "headers": { "x-session-token": "string — JWT de sesión" },
+        "params": { "user_id": "string — UUID del usuario" },
+        "query": {},
+        "body": {}
+      },
+      "responses": {
+        "200": { "description": "Lista de matrículas", "schema": { "data": "Enrollment[]" } },
+        "404": { "description": "Usuario no encontrado" },
+        "500": { "description": "Error interno del servidor" }
+      }
+    },
+    {
+      "path": "/enrollment/challenge/:challenge_id",
+      "method": "GET",
+      "controller": "EnrollmentController",
+      "action": "getByChallenge",
+      "description": "Devuelve todos los usuarios matriculados en un desafío.",
+      "implemented": true,
+      "auth_required": true,
+      "parameters": {
+        "headers": { "x-session-token": "string — JWT de sesión" },
+        "params": { "challenge_id": "string — UUID del desafío" },
+        "query": {},
+        "body": {}
+      },
+      "responses": {
+        "200": { "description": "Lista de matrículas", "schema": { "data": "Enrollment[]" } },
+        "404": { "description": "Desafío no encontrado" },
+        "500": { "description": "Error interno del servidor" }
+      }
+    },
+    {
+      "path": "/challenge",
+      "method": "POST",
+      "controller": "ChallengeController",
+      "action": "create",
+      "description": "Crea un nuevo desafío asociado a una clase. Verifica que la clase exista.",
+      "implemented": true,
+      "auth_required": true,
+      "roles_required": ["teacher", "admin"],
+      "parameters": {
+        "headers": { "x-session-token": "string — JWT de sesión" },
+        "params": {},
+        "query": {},
+        "body": {
+          "name": "string — nombre del desafío",
+          "class_id": "string — UUID de la clase a la que pertenece",
+          "description": "string — (opcional) descripción del desafío"
+        }
+      },
+      "responses": {
+        "200": { "description": "Desafío creado", "schema": { "id": "string — UUID del desafío creado" } },
+        "400": { "description": "Faltan name o class_id" },
+        "403": { "description": "El usuario no tiene permisos (rol student)" },
+        "404": { "description": "Clase no encontrada" },
+        "500": { "description": "Error interno del servidor" }
+      }
+    },
+    {
+      "path": "/challenge/class/:class_id",
+      "method": "GET",
+      "controller": "ChallengeController",
+      "action": "getByClass",
+      "description": "Devuelve todos los desafíos de una clase.",
+      "implemented": true,
+      "auth_required": true,
+      "parameters": {
+        "headers": { "x-session-token": "string — JWT de sesión" },
+        "params": { "class_id": "string — UUID de la clase" },
+        "query": {},
+        "body": {}
+      },
+      "responses": {
+        "200": { "description": "Lista de desafíos", "schema": { "data": "Challenge[]" } },
+        "404": { "description": "Clase no encontrada" },
+        "500": { "description": "Error interno del servidor" }
+      }
+    },
+    {
+      "path": "/challenge/:id",
+      "method": "GET",
+      "controller": "ChallengeController",
+      "action": "getOne",
+      "description": "Devuelve los datos de un desafío por su UUID.",
+      "implemented": true,
+      "auth_required": true,
+      "parameters": {
+        "headers": { "x-session-token": "string — JWT de sesión" },
+        "params": { "id": "string — UUID del desafío" },
+        "query": {},
+        "body": {}
+      },
+      "responses": {
+        "200": { "description": "Datos del desafío", "schema": { "id": "string", "name": "string", "class_id": "string", "description": "string|null", "created_at": "datetime", "updated_at": "datetime" } },
+        "404": { "description": "Desafío no encontrado" },
+        "500": { "description": "Error interno del servidor" }
+      }
+    },
+    {
+      "path": "/challenge/:id",
+      "method": "PATCH",
+      "controller": "ChallengeController",
+      "action": "updateOne",
+      "description": "Actualiza los datos de un desafío. Solo se modifican los campos enviados.",
+      "implemented": true,
+      "auth_required": true,
+      "roles_required": ["teacher", "admin"],
+      "parameters": {
+        "headers": { "x-session-token": "string — JWT de sesión" },
+        "params": { "id": "string — UUID del desafío" },
+        "query": {},
+        "body": {
+          "name": "string — (opcional) nuevo nombre",
+          "description": "string — (opcional) nueva descripción"
+        }
+      },
+      "responses": {
+        "200": { "description": "Desafío actualizado", "schema": { "message": "string" } },
+        "400": { "description": "Falta id o body vacío" },
+        "403": { "description": "El usuario no tiene permisos (rol student)" },
+        "404": { "description": "Desafío no encontrado" },
+        "500": { "description": "Error interno del servidor" }
+      }
+    },
+    {
+      "path": "/challenge/:id",
+      "method": "DELETE",
+      "controller": "ChallengeController",
+      "action": "deleteOne",
+      "description": "Elimina un desafío por su UUID. Elimina en cascada sus enrollments.",
+      "implemented": true,
+      "auth_required": true,
+      "roles_required": ["teacher", "admin"],
+      "parameters": {
+        "headers": { "x-session-token": "string — JWT de sesión" },
+        "params": { "id": "string — UUID del desafío" },
+        "query": {},
+        "body": {}
+      },
+      "responses": {
+        "200": { "description": "Desafío eliminado", "schema": { "message": "string" } },
+        "403": { "description": "El usuario no tiene permisos (rol student)" },
+        "404": { "description": "Desafío no encontrado" },
+        "500": { "description": "Error interno del servidor" }
+      }
+    },
+    {
+      "path": "/stats/user/:user_id",
+      "method": "GET",
+      "controller": "StatsController",
+      "action": "getByUser",
+      "description": "Devuelve el historial de puntos ganados por un usuario: qué retos completó, cuántos puntos obtuvo en cada uno y cuándo. Accesible por el propio usuario, teacher y admin.",
+      "implemented": true,
+      "auth_required": true,
+      "parameters": {
+        "headers": { "x-session-token": "string — JWT de sesión" },
+        "params": { "user_id": "string — UUID del usuario" },
+        "query": {},
+        "body": {}
+      },
+      "responses": {
+        "200": {
+          "description": "Historial de puntos del usuario",
+          "schema": {
+            "total_points": "number — suma acumulada de puntos del usuario",
+            "history": "array — [{ challenge_id, points, earned_at }]"
+          }
+        },
+        "404": { "description": "Usuario no encontrado" },
+        "500": { "description": "Error interno del servidor" }
+      }
+    },
+    {
+      "path": "/stats/challenge/:challenge_id",
+      "method": "GET",
+      "controller": "StatsController",
+      "action": "getByChallenge",
+      "description": "Devuelve qué usuarios han completado un reto concreto y cuántos puntos ganaron. Útil para el teacher para ver el alcance de un reto.",
+      "implemented": true,
+      "auth_required": true,
+      "roles_required": ["teacher", "admin"],
+      "parameters": {
+        "headers": { "x-session-token": "string — JWT de sesión" },
+        "params": { "challenge_id": "string — UUID del desafío" },
+        "query": {},
+        "body": {}
+      },
+      "responses": {
+        "200": {
+          "description": "Usuarios que han completado el reto",
+          "schema": {
+            "challenge_id": "string",
+            "total_completions": "number — cuántos usuarios lo han completado",
+            "completions": "array — [{ user_id, points, earned_at }]"
+          }
+        },
+        "403": { "description": "El usuario no tiene permisos (rol student)" },
+        "404": { "description": "Desafío no encontrado" },
+        "500": { "description": "Error interno del servidor" }
+      }
+    },
+    {
+      "path": "/stats/class/:class_id",
+      "method": "GET",
+      "controller": "StatsController",
+      "action": "getByClass",
+      "description": "Devuelve KPIs agregados de una clase para el panel del teacher: alumnos, retos, participación, tasa de completado, puntos otorgados, etc.",
+      "implemented": true,
+      "auth_required": true,
+      "roles_required": ["teacher", "admin"],
+      "parameters": {
+        "headers": { "x-session-token": "string — JWT de sesión" },
+        "params": { "class_id": "string — UUID de la clase" },
+        "query": {},
+        "body": {}
+      },
+      "responses": {
+        "200": {
+          "description": "KPIs de la clase",
+          "schema": {
+            "class_id": "string",
+            "total_students": "number — alumnos inscritos en la clase",
+            "total_challenges": "number — desafíos disponibles en la clase",
+            "total_enrollments": "number — matrículas totales en los retos de la clase",
+            "completed_enrollments": "number — matrículas completadas",
+            "completion_rate": "number — % de matrículas completadas sobre el total",
+            "participation_rate": "number — % de alumnos con al menos una matrícula sobre el total de alumnos",
+            "total_points_awarded": "number — suma total de puntos otorgados en la clase"
+          }
+        },
+        "403": { "description": "El usuario no tiene permisos (rol student)" },
+        "404": { "description": "Clase no encontrada" },
+        "500": { "description": "Error interno del servidor" }
+      }
+    }
+  ]
+}

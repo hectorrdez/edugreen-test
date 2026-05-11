@@ -1,0 +1,40 @@
+info:
+  name: Login a user
+  type: http
+  seq: 6
+
+http:
+  method: POST
+  url: "{{API_DOMAIN}}:{{API_PORT}}/api/auth/login"
+  body:
+    type: json
+    data: |-
+      {
+        "email":"test.admin@edugreen.com",
+        "password":"test_admin"
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test(`Response with expected status`, () => {
+          expect(res.getStatus()).to.be.equal(200);
+        });
+
+        test(`Response with accessToken and refreshToken`, () => {
+          expect(res.getBody().data).has.property("sessionToken");
+          expect(res.getBody().data).has.property("refreshToken");
+          expect(res.getBody().data).has.property("id");
+          bru.setEnvVar("USER_SESSION_TOKEN", res.getBody().data.sessionToken);
+          bru.setEnvVar("USER_REFRESH_TOKEN", res.getBody().data.refreshToken);
+          bru.setEnvVar("USER_ID", res.getBody().data.id);
+          bru.setEnvVar("USER_SESSION_INIT_TIME", String(Date.now()));
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

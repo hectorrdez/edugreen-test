@@ -1,0 +1,44 @@
+info:
+  name: "Register a student user "
+  type: http
+  seq: 4
+
+http:
+  method: POST
+  url: "{{API_DOMAIN}}:{{API_PORT}}/api/auth"
+  body:
+    type: json
+    data: |-
+      {
+        "name": "test",
+        "lastName":"api student",
+        "email":"test.api.student@student.edugreen.com",
+        "password":"test_api"
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test(`Response with expected status`, () => {
+          expect(res.getStatus()).to.be.equal(200);
+        });
+
+        test(`Response with accessToken and refreshToken`, () => {
+          expect(res.getBody().data).has.property("sessionToken");
+          expect(res.getBody().data).has.property("refreshToken");
+          expect(res.getBody().data).has.property("id");
+          bru.setEnvVar("STUDENT_USER_ID", res.getBody().data.id);
+        });
+
+        test(`Created with the correct role`, ()=>{
+          expect(res.getBody().data).has.property("role");
+          expect(res.getBody().data.role).to.be.equal("teacher");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

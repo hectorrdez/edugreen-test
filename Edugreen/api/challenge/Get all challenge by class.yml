@@ -1,0 +1,28 @@
+info:
+  name: Get all challenge by class
+  type: http
+  seq: 2
+
+http:
+  method: GET
+  url: "{{API_DOMAIN}}:{{API_PORT}}/api/challenge/class/{{CLASS_ID}}"
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test(`Response with expected status`, () => {
+          expect(res.getStatus()).to.be.equal(200);
+        });
+
+        test(`Successfully got info`, () => {
+          expect(res.getBody().error).to.be.equal("");
+          expect(res.getBody().data).not.to.be.equal({});
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

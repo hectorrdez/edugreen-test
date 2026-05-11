@@ -1,0 +1,27 @@
+info:
+  name: Delete institution
+  type: http
+  seq: 5
+
+http:
+  method: DELETE
+  url: "{{API_URL}}/institution/{{INSTITUTION_ID}}"
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test(`Response with expected status`, () => {
+          expect(res.getStatus()).to.be.equal(200);
+        });
+
+        test(`Deleted successfully`, () => {
+          expect(res.getBody().data.message).to.be.equal("Institution deleted successfully");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

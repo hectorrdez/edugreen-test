@@ -1,0 +1,37 @@
+info:
+  name: Create institution
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: "{{API_URL}}/institution"
+  body:
+    type: json
+    data: |-
+      {
+        "name": "Universidad de Alicante",
+        "teacher_domain": "ua.es",
+        "student_domain": "alu.ua.es"
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test(`Response with expected status`, () => {
+          expect(res.getStatus()).to.be.equal(200);
+        });
+
+        test(`Successfully enrolled user`, () => {
+          expect(res.getBody().error).to.be.equal("");
+          expect(res.getBody().data).have.property("id");
+          bru.setEnvVar("INSTITUTION_ID", res.getBody().data.id);
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
