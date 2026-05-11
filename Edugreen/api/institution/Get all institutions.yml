@@ -1,0 +1,27 @@
+info:
+  name: Get all institutions
+  type: http
+  seq: 6
+
+http:
+  method: GET
+  url: "{{API_URL}}/institution"
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test(`Response with expected status`, () => {
+          expect(res.getStatus()).to.be.equal(200);
+        });
+
+        test(`Response has institutions list`, () => {
+          expect(res.getBody()).have.property("data");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

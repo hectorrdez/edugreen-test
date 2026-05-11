@@ -1,0 +1,29 @@
+info:
+  name: Health check
+  type: http
+  seq: 1
+
+http:
+  method: GET
+  url: "{{API_URL}}/health"
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test(`Response with expected status`, () => {
+          expect(res.getStatus()).to.be.equal(200);
+        });
+
+        test(`Response has service info`, () => {
+          expect(res.getBody()).have.property("name");
+          expect(res.getBody()).have.property("online");
+          expect(res.getBody().online).to.be.equal(true);
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
